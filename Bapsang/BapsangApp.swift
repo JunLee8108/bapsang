@@ -9,9 +9,12 @@ import SwiftUI
 
 @main
 struct BapsangApp: App {
+    @State private var authService = AuthService()
+    
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            RootView()
+                .environment(authService)
         }
     }
 }

@@ -6,6 +6,15 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		BFF546DF2F687B89003839DB /* Auth in Frameworks */ = {isa = PBXBuildFile; productRef = BFF546DE2F687B89003839DB /* Auth */; };
+		BFF546E12F687B89003839DB /* Functions in Frameworks */ = {isa = PBXBuildFile; productRef = BFF546E02F687B89003839DB /* Functions */; };
+		BFF546E32F687B89003839DB /* PostgREST in Frameworks */ = {isa = PBXBuildFile; productRef = BFF546E22F687B89003839DB /* PostgREST */; };
+		BFF546E52F687B89003839DB /* Realtime in Frameworks */ = {isa = PBXBuildFile; productRef = BFF546E42F687B89003839DB /* Realtime */; };
+		BFF546E72F687B89003839DB /* Storage in Frameworks */ = {isa = PBXBuildFile; productRef = BFF546E62F687B89003839DB /* Storage */; };
+		BFF546E92F687B89003839DB /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = BFF546E82F687B89003839DB /* Supabase */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		BFF546C12F687B3E003839DB /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -29,9 +38,22 @@
 		BFF546CA2F687B3E003839DB /* BapsangUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = BapsangUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		BFF547DF2F687ED3003839DB /* Exceptions for "Bapsang" folder in "Bapsang" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = BFF546B22F687B3D003839DB /* Bapsang */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		BFF546B52F687B3D003839DB /* Bapsang */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				BFF547DF2F687ED3003839DB /* Exceptions for "Bapsang" folder in "Bapsang" target */,
+			);
 			path = Bapsang;
 			sourceTree = "<group>";
 		};
@@ -52,6 +74,12 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				BFF546E32F687B89003839DB /* PostgREST in Frameworks */,
+				BFF546E12F687B89003839DB /* Functions in Frameworks */,
+				BFF546E92F687B89003839DB /* Supabase in Frameworks */,
+				BFF546DF2F687B89003839DB /* Auth in Frameworks */,
+				BFF546E72F687B89003839DB /* Storage in Frameworks */,
+				BFF546E52F687B89003839DB /* Realtime in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -112,6 +140,12 @@
 			);
 			name = Bapsang;
 			packageProductDependencies = (
+				BFF546DE2F687B89003839DB /* Auth */,
+				BFF546E02F687B89003839DB /* Functions */,
+				BFF546E22F687B89003839DB /* PostgREST */,
+				BFF546E42F687B89003839DB /* Realtime */,
+				BFF546E62F687B89003839DB /* Storage */,
+				BFF546E82F687B89003839DB /* Supabase */,
 			);
 			productName = Bapsang;
 			productReference = BFF546B32F687B3D003839DB /* Bapsang.app */;
@@ -195,6 +229,9 @@
 			);
 			mainGroup = BFF546AA2F687B3D003839DB;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				BFF546DD2F687B89003839DB /* XCRemoteSwiftPackageReference "supabase-swift" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = BFF546B42F687B3D003839DB /* Products */;
 			projectDirPath = "";
@@ -392,14 +429,18 @@
 		};
 		BFF546D52F687B3E003839DB /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReferenceAnchor = BFF546B52F687B3D003839DB /* Bapsang */;
+			baseConfigurationReferenceRelativePath = Release.xcconfig;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = Bapsang/Bapsang.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 4QKAJX523X;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Bapsang/Info.plist;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -424,14 +465,18 @@
 		};
 		BFF546D62F687B3E003839DB /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReferenceAnchor = BFF546B52F687B3D003839DB /* Bapsang */;
+			baseConfigurationReferenceRelativePath = Release.xcconfig;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = Bapsang/Bapsang.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 4QKAJX523X;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Bapsang/Info.plist;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -578,6 +623,50 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		BFF546DD2F687B89003839DB /* XCRemoteSwiftPackageReference "supabase-swift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/supabase/supabase-swift";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.5.1;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		BFF546DE2F687B89003839DB /* Auth */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = BFF546DD2F687B89003839DB /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Auth;
+		};
+		BFF546E02F687B89003839DB /* Functions */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = BFF546DD2F687B89003839DB /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Functions;
+		};
+		BFF546E22F687B89003839DB /* PostgREST */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = BFF546DD2F687B89003839DB /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = PostgREST;
+		};
+		BFF546E42F687B89003839DB /* Realtime */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = BFF546DD2F687B89003839DB /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Realtime;
+		};
+		BFF546E62F687B89003839DB /* Storage */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = BFF546DD2F687B89003839DB /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Storage;
+		};
+		BFF546E82F687B89003839DB /* Supabase */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = BFF546DD2F687B89003839DB /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Supabase;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = BFF546AB2F687B3D003839DB /* Project object */;
 }

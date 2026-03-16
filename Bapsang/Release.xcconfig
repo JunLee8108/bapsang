@@ -1,0 +1,9 @@
+//
+//  Release.xcconfig
+//  Bapsang
+//
+//  Created by Jun Lee on 3/16/26.
+//
+
+SUPABASE_URL = https:/$()/oxgjdyynmuhxexkopevm.supabase.co
+SUPABASE_ANON_KEY = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im94Z2pkeXlubXVoeGV4a29wZXZtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM2ODIzOTksImV4cCI6MjA4OTI1ODM5OX0.-3Qvx5E52PD5qWDTzfxpBk8AZU2hhxXQIqv4yoVm1As
