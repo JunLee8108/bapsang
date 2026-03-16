@@ -1,0 +1,140 @@
+-- ============================================================
+-- Bapsang — Phase 2 Tables Migration
+-- Run this in Supabase SQL Editor
+-- ============================================================
+
+-- 1. recipe_categories — Category master data
+CREATE TABLE public.recipe_categories (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    name TEXT NOT NULL,
+    icon TEXT NOT NULL,
+    description TEXT,
+    sort_order INT DEFAULT 0,
+    is_active BOOLEAN DEFAULT true,
+    created_at TIMESTAMPTZ DEFAULT now()
+);
+
+ALTER TABLE public.recipe_categories ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "categories_select_authenticated"
+    ON public.recipe_categories FOR SELECT
+    TO authenticated
+    USING (true);
+
+-- Seed data
+INSERT INTO public.recipe_categories (name, icon, description, sort_order) VALUES
+    ('Soup/Stew',   '🍲', 'Warm and comforting Korean soups and stews', 1),
+    ('Stir-fry',    '🥘', 'Quick and flavorful stir-fried dishes',      2),
+    ('Rice',        '🍚', 'Hearty rice-based Korean meals',             3),
+    ('Noodles',     '🍜', 'Delicious Korean noodle dishes',             4),
+    ('Side Dishes', '🥗', 'Traditional Korean banchan',                 5),
+    ('One-Plate',   '🍳', 'Simple all-in-one plate meals',              6);
+
+
+-- 2. recipes — AI-generated recipes
+CREATE TABLE public.recipes (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
+    category_id UUID REFERENCES public.recipe_categories(id) ON DELETE SET NULL,
+    title TEXT NOT NULL,
+    description TEXT,
+    ingredients JSONB NOT NULL DEFAULT '[]',
+    steps JSONB NOT NULL DEFAULT '[]',
+    cooking_time INT,
+    difficulty TEXT CHECK (difficulty IN ('easy', 'medium', 'hard')),
+    serving_size INT DEFAULT 1,
+    ai_raw_response JSONB,
+    created_at TIMESTAMPTZ DEFAULT now()
+);
+
+ALTER TABLE public.recipes ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "recipes_select_own"
+    ON public.recipes FOR SELECT
+    USING (auth.uid() = user_id);
+
+CREATE POLICY "recipes_insert_own"
+    ON public.recipes FOR INSERT
+    WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "recipes_delete_own"
+    ON public.recipes FOR DELETE
+    USING (auth.uid() = user_id);
+
+CREATE INDEX idx_recipes_user_id ON public.recipes(user_id);
+CREATE INDEX idx_recipes_category_id ON public.recipes(category_id);
+
+
+-- 3. saved_recipes — User's bookmarked recipes
+CREATE TABLE public.saved_recipes (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
+    recipe_id UUID NOT NULL REFERENCES public.recipes(id) ON DELETE CASCADE,
+    created_at TIMESTAMPTZ DEFAULT now(),
+    UNIQUE(user_id, recipe_id)
+);
+
+ALTER TABLE public.saved_recipes ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "saved_select_own"
+    ON public.saved_recipes FOR SELECT
+    USING (auth.uid() = user_id);
+
+CREATE POLICY "saved_insert_own"
+    ON public.saved_recipes FOR INSERT
+    WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "saved_delete_own"
+    ON public.saved_recipes FOR DELETE
+    USING (auth.uid() = user_id);
+
+
+-- 4. recent_views — Recently viewed recipes
+CREATE TABLE public.recent_views (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
+    recipe_id UUID NOT NULL REFERENCES public.recipes(id) ON DELETE CASCADE,
+    viewed_at TIMESTAMPTZ DEFAULT now()
+);
+
+ALTER TABLE public.recent_views ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "views_select_own"
+    ON public.recent_views FOR SELECT
+    USING (auth.uid() = user_id);
+
+CREATE POLICY "views_insert_own"
+    ON public.recent_views FOR INSERT
+    WITH CHECK (auth.uid() = user_id);
+
+CREATE INDEX idx_recent_views_user_date ON public.recent_views(user_id, viewed_at DESC);
+
+
+-- 5. chat_sessions — AI chat history
+CREATE TABLE public.chat_sessions (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
+    recipe_id UUID REFERENCES public.recipes(id) ON DELETE SET NULL,
+    messages JSONB NOT NULL DEFAULT '[]',
+    created_at TIMESTAMPTZ DEFAULT now(),
+    updated_at TIMESTAMPTZ DEFAULT now()
+);
+
+ALTER TABLE public.chat_sessions ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "chat_select_own"
+    ON public.chat_sessions FOR SELECT
+    USING (auth.uid() = user_id);
+
+CREATE POLICY "chat_insert_own"
+    ON public.chat_sessions FOR INSERT
+    WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "chat_update_own"
+    ON public.chat_sessions FOR UPDATE
+    USING (auth.uid() = user_id);
+
+CREATE TRIGGER on_chat_sessions_updated
+    BEFORE UPDATE ON public.chat_sessions
+    FOR EACH ROW
+    EXECUTE FUNCTION public.handle_updated_at();
