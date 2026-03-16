@@ -10,17 +10,14 @@ import SwiftUI
 struct MainTabView: View {
     var body: some View {
         TabView {
-            // 홈 — 식재료 선택 (Phase 2)
-            PlaceholderView(icon: "🥔", title: "식재료 선택")
-                .tabItem { Label("추천", systemImage: "fork.knife") }
+            RecommendationView()
+                .tabItem { Label("Recommend", systemImage: "fork.knife") }
             
-            // 저장 (Phase 2)
-            PlaceholderView(icon: "📖", title: "저장된 레시피")
-                .tabItem { Label("저장", systemImage: "bookmark") }
-            
-            // 설정
+            PlaceholderView(icon: "📖", title: "Saved Recipes")
+                .tabItem { Label("Saved", systemImage: "bookmark") }
+
             SettingsView()
-                .tabItem { Label("설정", systemImage: "gearshape") }
+                .tabItem { Label("Settings", systemImage: "gearshape") }
         }
         .tint(.orange)
     }
