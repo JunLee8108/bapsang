@@ -140,7 +140,7 @@ struct LoginView: View {
                         )
                     )
                 
-                Text("Your Korean Food Recipes")
+                Text("Your K-Food Recipes")
                     .font(.system(size: 15, weight: .medium, design: .rounded))
                     .foregroundStyle(.secondary)
                     .tracking(4)

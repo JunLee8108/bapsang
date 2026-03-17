@@ -27,7 +27,8 @@ struct RecommendationView: View {
                 .padding(.top, 8)
                 .padding(.bottom, 32)
             }
-            .navigationTitle("What Should I Eat?")
+            .navigationTitle("Bapsang")
+            .navigationBarTitleDisplayMode(.inline)
             .background(backgroundGradient)
         }
         .onAppear { triggerStaggerAnimation() }
