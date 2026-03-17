@@ -18,15 +18,12 @@ final class CommunityService {
             .select("*, user_profiles(*)")
             .eq("is_hidden", value: false)
 
-        let orderedQuery: PostgrestFilterBuilder
         switch sortBy {
         case .latest:
-            orderedQuery = query.order("created_at", ascending: false)
+            return try await query.order("created_at", ascending: false).execute().value
         case .popular:
-            orderedQuery = query.order("likes_count", ascending: false)
+            return try await query.order("likes_count", ascending: false).execute().value
         }
-
-        return try await orderedQuery.execute().value
     }
 
     func fetchPost(id: UUID) async throws -> CommunityPost {
