@@ -101,11 +101,34 @@ final class CommunityService {
     }
 
     func deletePost(id: UUID) async throws {
+        // Fetch the post first to get imageUrl before deleting
+        let posts: [CommunityPost] = try await supabase
+            .from("community_posts")
+            .select()
+            .eq("id", value: id)
+            .execute()
+            .value
+
+        if let imageUrl = posts.first?.imageUrl {
+            try? await deleteImage(urlString: imageUrl)
+        }
+
         try await supabase
             .from("community_posts")
             .delete()
             .eq("id", value: id)
             .execute()
+    }
+
+    func deleteImage(urlString: String) async throws {
+        let bucket = "community-images"
+        // URL format: .../storage/v1/object/public/community-images/{userId}/{file}.jpg
+        guard let range = urlString.range(of: "\(bucket)/") else { return }
+        let path = String(urlString[range.upperBound...])
+        guard !path.isEmpty else { return }
+        try await supabase.storage
+            .from(bucket)
+            .remove(paths: [path])
     }
 
     // MARK: - Likes
