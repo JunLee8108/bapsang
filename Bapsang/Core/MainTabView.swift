@@ -12,7 +12,10 @@ struct MainTabView: View {
         TabView {
             RecommendationView()
                 .tabItem { Label("Recommend", systemImage: "fork.knife") }
-            
+
+            CommunityView()
+                .tabItem { Label("Community", systemImage: "bubble.left.and.bubble.right") }
+
             PlaceholderView(icon: "📖", title: "Saved Recipes")
                 .tabItem { Label("Saved", systemImage: "bookmark") }
 
