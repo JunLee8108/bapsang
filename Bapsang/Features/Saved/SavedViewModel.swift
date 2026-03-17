@@ -1,0 +1,118 @@
+//
+//  SavedViewModel.swift
+//  Bapsang
+//
+
+import Foundation
+import Observation
+
+@Observable
+@MainActor
+final class SavedViewModel {
+
+    // MARK: - State
+
+    var selectedTab: SavedSourceType = .default
+    var isLoading = false
+    var errorMessage: String?
+
+    // Default recipes
+    var savedDefaultRecipes: [DefaultRecipe] = []
+
+    // Community posts
+    var savedCommunityPosts: [CommunityPost] = []
+    var authorNames: [UUID: String] = [:]
+
+    // Saved IDs for quick lookup (used by bookmark buttons)
+    var savedDefaultIds: Set<UUID> = []
+    var savedCommunityIds: Set<UUID> = []
+
+    private let service = SavedService()
+
+    // MARK: - Fetch
+
+    func fetchSaved(userId: UUID) async {
+        isLoading = true
+        defer { isLoading = false }
+
+        do {
+            switch selectedTab {
+            case .default:
+                let ids = try await service.fetchSavedSourceIds(userId: userId, sourceType: .default)
+                savedDefaultIds = ids
+                savedDefaultRecipes = ids.compactMap { DefaultRecipeData.recipe(for: $0) }
+            case .community:
+                let ids = try await service.fetchSavedSourceIds(userId: userId, sourceType: .community)
+                savedCommunityIds = ids
+                let posts = try await service.fetchCommunityPosts(ids: ids)
+                savedCommunityPosts = posts
+                // Fetch author names
+                let userIds = Set(posts.map(\.userId))
+                let newIds = userIds.subtracting(authorNames.keys)
+                if !newIds.isEmpty {
+                    let names = try await service.fetchDisplayNames(userIds: newIds)
+                    authorNames.merge(names) { _, new in new }
+                }
+            }
+        } catch {
+            errorMessage = "저장된 레시피를 불러올 수 없습니다."
+        }
+    }
+
+    // MARK: - Toggle Save
+
+    func toggleSave(userId: UUID, sourceType: SavedSourceType, sourceId: UUID) async {
+        do {
+            let isSaved = isSaved(sourceType: sourceType, sourceId: sourceId)
+
+            if isSaved {
+                try await service.unsaveItem(userId: userId, sourceType: sourceType, sourceId: sourceId)
+                switch sourceType {
+                case .default:
+                    savedDefaultIds.remove(sourceId)
+                    savedDefaultRecipes.removeAll { $0.id == sourceId }
+                case .community:
+                    savedCommunityIds.remove(sourceId)
+                    savedCommunityPosts.removeAll { $0.id == sourceId }
+                }
+            } else {
+                try await service.saveItem(userId: userId, sourceType: sourceType, sourceId: sourceId)
+                switch sourceType {
+                case .default:
+                    savedDefaultIds.insert(sourceId)
+                    if let recipe = DefaultRecipeData.recipe(for: sourceId) {
+                        savedDefaultRecipes.insert(recipe, at: 0)
+                    }
+                case .community:
+                    savedCommunityIds.insert(sourceId)
+                }
+            }
+        } catch {
+            errorMessage = "저장 처리에 실패했습니다."
+        }
+    }
+
+    // MARK: - Check
+
+    func isSaved(sourceType: SavedSourceType, sourceId: UUID) -> Bool {
+        switch sourceType {
+        case .default:   return savedDefaultIds.contains(sourceId)
+        case .community: return savedCommunityIds.contains(sourceId)
+        }
+    }
+
+    // MARK: - Load All Saved IDs (for bookmark buttons across the app)
+
+    func loadSavedIds(userId: UUID) async {
+        do {
+            savedDefaultIds = try await service.fetchSavedSourceIds(userId: userId, sourceType: .default)
+            savedCommunityIds = try await service.fetchSavedSourceIds(userId: userId, sourceType: .community)
+        } catch {}
+    }
+
+    // MARK: - Display Name
+
+    func displayName(for userId: UUID) -> String {
+        authorNames[userId] ?? "Chef"
+    }
+}

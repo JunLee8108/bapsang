@@ -754,6 +754,14 @@ enum DefaultRecipeData {
     static func recipes(for categoryName: String) -> [DefaultRecipe] {
         all[categoryName] ?? []
     }
+
+    static var flatList: [DefaultRecipe] {
+        all.values.flatMap { $0 }
+    }
+
+    static func recipe(for id: UUID) -> DefaultRecipe? {
+        flatList.first { $0.id == id }
+    }
 }
 
 // swiftlint:enable function_body_length file_length

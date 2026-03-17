@@ -16,7 +16,7 @@ struct MainTabView: View {
             CommunityView()
                 .tabItem { Label("Community", systemImage: "bubble.left.and.bubble.right") }
 
-            PlaceholderView(icon: "📖", title: "Saved Recipes")
+            SavedView()
                 .tabItem { Label("Saved", systemImage: "bookmark") }
 
             SettingsView()
@@ -26,22 +26,3 @@ struct MainTabView: View {
     }
 }
 
-// MARK: - Placeholder (Phase 2 화면용 임시 뷰)
-
-struct PlaceholderView: View {
-    let icon: String
-    let title: String
-    
-    var body: some View {
-        NavigationStack {
-            VStack(spacing: 12) {
-                Text(icon)
-                    .font(.system(size: 60))
-                Text(title)
-                    .font(.title3)
-                    .foregroundStyle(.secondary)
-            }
-            .navigationTitle("오늘 뭐 먹지?")
-        }
-    }
-}
