@@ -28,6 +28,9 @@ final class CommunityViewModel {
     var commentText = ""
     var likedPostIds: Set<UUID> = []
 
+    // Author display names cache
+    var authorNames: [UUID: String] = [:]
+
     // Create post state
     var newTitle = ""
     var newDescription = ""
@@ -56,6 +59,9 @@ final class CommunityViewModel {
 
         do {
             posts = try await service.fetchPosts(sortBy: sortBy)
+            let userIds = Set(posts.map(\.userId))
+            let names = try await service.fetchDisplayNames(userIds: userIds)
+            authorNames.merge(names) { _, new in new }
         } catch {
             errorMessage = "게시물을 불러올 수 없습니다."
         }
@@ -104,6 +110,12 @@ final class CommunityViewModel {
 
         do {
             comments = try await service.fetchComments(postId: postId)
+            let userIds = Set(comments.map(\.userId))
+            let newIds = userIds.subtracting(authorNames.keys)
+            if !newIds.isEmpty {
+                let names = try await service.fetchDisplayNames(userIds: newIds)
+                authorNames.merge(names) { _, new in new }
+            }
         } catch {
             errorMessage = "댓글을 불러올 수 없습니다."
         }
@@ -292,6 +304,12 @@ final class CommunityViewModel {
         } catch {
             errorMessage = "이미 신고한 게시물입니다."
         }
+    }
+
+    // MARK: - Display Name
+
+    func displayName(for userId: UUID) -> String {
+        authorNames[userId] ?? "Chef"
     }
 
     // MARK: - Helpers

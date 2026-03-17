@@ -8,6 +8,7 @@ import SwiftUI
 struct CommunityPostCard: View {
     let post: CommunityPost
     let isLiked: Bool
+    let authorName: String
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -18,7 +19,7 @@ struct CommunityPostCard: View {
                     .foregroundStyle(.orange.opacity(0.7))
 
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("Chef")
+                    Text(authorName)
                         .font(.system(size: 14, weight: .semibold, design: .rounded))
 
                     Text(post.timeAgo)

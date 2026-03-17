@@ -209,7 +209,8 @@ struct CommunityView: View {
                         } label: {
                             CommunityPostCard(
                                 post: post,
-                                isLiked: viewModel.likedPostIds.contains(post.id)
+                                isLiked: viewModel.likedPostIds.contains(post.id),
+                                authorName: viewModel.displayName(for: post.userId)
                             )
                         }
                         .buttonStyle(.plain)
