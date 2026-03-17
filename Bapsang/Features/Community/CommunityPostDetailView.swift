@@ -33,6 +33,7 @@ struct CommunityPostDetailView: View {
                                     .frame(maxWidth: .infinity)
                                     .frame(height: 200)
                                     .clipped()
+                                    .contentShape(Rectangle())
                                     .clipShape(RoundedRectangle(cornerRadius: 16))
                             case .failure:
                                 RoundedRectangle(cornerRadius: 16)

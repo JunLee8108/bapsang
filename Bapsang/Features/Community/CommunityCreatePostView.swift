@@ -176,6 +176,8 @@ struct CommunityCreatePostView: View {
                                     .resizable()
                                     .scaledToFill()
                                     .frame(height: imageFrameHeight)
+                                    .clipped()
+                                    .contentShape(Rectangle())
                                     .clipShape(RoundedRectangle(cornerRadius: 16))
                             default:
                                 RoundedRectangle(cornerRadius: 16)
