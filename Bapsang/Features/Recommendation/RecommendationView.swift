@@ -30,6 +30,16 @@ struct RecommendationView: View {
             .navigationTitle("Bapsang")
             .navigationBarTitleDisplayMode(.inline)
             .background(backgroundGradient)
+            .sheet(isPresented: $viewModel.showCategorySheet) {
+                if let category = viewModel.selectedCategory {
+                    CategorySheetView(
+                        category: category,
+                        recipes: viewModel.recipesForSelectedCategory
+                    )
+                    .presentationDetents([.medium, .large])
+                    .presentationDragIndicator(.visible)
+                }
+            }
         }
         .onAppear { triggerStaggerAnimation() }
     }
@@ -137,7 +147,7 @@ struct RecommendationView: View {
             LazyVGrid(columns: columns, spacing: 14) {
                 ForEach(Array(viewModel.categories.enumerated()), id: \.element.id) { index, category in
                     CategoryCard(category: category) {
-                        // Phase 2: navigate to category-filtered ingredients
+                        viewModel.selectCategory(category)
                     }
                     .opacity(animationValue(for: index) ? 1 : 0)
                     .offset(y: animationValue(for: index) ? 0 : 20)
