@@ -7,6 +7,7 @@ import SwiftUI
 
 struct RecipeDetailView: View {
     let recipe: DefaultRecipe
+    @State private var showFullImage = false
 
     var body: some View {
         ScrollView {
@@ -21,13 +22,23 @@ struct RecipeDetailView: View {
         }
         .navigationTitle(recipe.name)
         .navigationBarTitleDisplayMode(.inline)
+        .fullScreenCover(isPresented: $showFullImage) {
+            FullScreenImageView(recipe: recipe)
+        }
     }
 
     // MARK: - Hero
 
     private var heroSection: some View {
         VStack(spacing: 10) {
-            RecipeImageView(recipe: recipe, size: 120, cornerRadius: 20)
+            Button {
+                if UIImage(named: recipe.imageName) != nil {
+                    showFullImage = true
+                }
+            } label: {
+                RecipeImageView(recipe: recipe, size: 120, cornerRadius: 20)
+            }
+            .buttonStyle(.plain)
 
             Text(recipe.name)
                 .font(.system(size: 24, weight: .bold, design: .rounded))
@@ -161,6 +172,94 @@ struct RecipeDetailView: View {
 
             Text(title)
                 .font(.system(size: 17, weight: .semibold, design: .rounded))
+        }
+    }
+}
+
+// MARK: - Full Screen Image
+
+private struct FullScreenImageView: View {
+    let recipe: DefaultRecipe
+    @Environment(\.dismiss) private var dismiss
+    @State private var scale: CGFloat = 1.0
+    @State private var lastScale: CGFloat = 1.0
+    @State private var offset: CGSize = .zero
+    @State private var lastOffset: CGSize = .zero
+
+    var body: some View {
+        ZStack {
+            Color.black.ignoresSafeArea()
+
+            if let uiImage = UIImage(named: recipe.imageName) {
+                Image(uiImage: uiImage)
+                    .resizable()
+                    .scaledToFit()
+                    .scaleEffect(scale)
+                    .offset(offset)
+                    .gesture(
+                        MagnifyGesture()
+                            .onChanged { value in
+                                scale = lastScale * value.magnification
+                            }
+                            .onEnded { _ in
+                                lastScale = max(scale, 1.0)
+                                scale = max(scale, 1.0)
+                                if scale == 1.0 {
+                                    withAnimation(.spring(response: 0.3)) {
+                                        offset = .zero
+                                        lastOffset = .zero
+                                    }
+                                }
+                            }
+                            .simultaneously(
+                                with: DragGesture()
+                                    .onChanged { value in
+                                        if scale > 1.0 {
+                                            offset = CGSize(
+                                                width: lastOffset.width + value.translation.width,
+                                                height: lastOffset.height + value.translation.height
+                                            )
+                                        }
+                                    }
+                                    .onEnded { _ in
+                                        lastOffset = offset
+                                    }
+                            )
+                    )
+                    .onTapGesture(count: 2) {
+                        withAnimation(.spring(response: 0.3)) {
+                            if scale > 1.0 {
+                                scale = 1.0
+                                lastScale = 1.0
+                                offset = .zero
+                                lastOffset = .zero
+                            } else {
+                                scale = 2.5
+                                lastScale = 2.5
+                            }
+                        }
+                    }
+            }
+
+            VStack {
+                HStack {
+                    Spacer()
+                    Button {
+                        dismiss()
+                    } label: {
+                        Image(systemName: "xmark.circle.fill")
+                            .font(.system(size: 30))
+                            .foregroundStyle(.white.opacity(0.8))
+                            .padding(16)
+                    }
+                }
+                Spacer()
+
+                Text(recipe.koreanName)
+                    .font(.system(size: 16, weight: .medium, design: .rounded))
+                    .foregroundStyle(.white.opacity(0.7))
+                    .padding(.bottom, 40)
+            }
         }
     }
 }
