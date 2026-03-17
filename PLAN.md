@@ -2,7 +2,8 @@
 
 ## Current State
 - Login (Apple/Google) ✅ Done
-- RootView → routes to MainTabView when authenticated ✅ Done
+- Onboarding (display name, spice level, dietary restrictions) ✅ Done
+- RootView → Login → Onboarding (first signup only) → MainTabView ✅ Done
 - MainTabView "Recommend" tab → PlaceholderView (temporary) ⏳ Needs replacement
 
 ## Goal
@@ -127,6 +128,7 @@ Entry point for selecting ingredients and getting AI-powered Korean recipe recom
 ### Current Tables
 - `public.users` — auth.users 1:1 mapping (with trigger) ✅
   - Includes community columns: `display_name`, `total_likes_received`, `total_posts`, `badges`
+  - Includes onboarding columns: `preferred_spice_level`, `dietary_restrictions`, `has_completed_onboarding`
   - No separate `user_profiles` table — all profile data lives here
 
 ### New Tables Needed
@@ -268,7 +270,7 @@ CREATE TRIGGER on_chat_sessions_updated
 auth.users
     │
     ▼ (1:1 trigger)
-public.users  ← 커뮤니티 프로필 통합 (display_name, badges, stats)
+public.users  ← 프로필 통합 (display_name, badges, stats, spice, dietary, onboarding)
     │
     ├──▶ recipes (1:N)            — AI가 생성한 레시피
     │       │
