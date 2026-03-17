@@ -11,6 +11,7 @@ struct DefaultRecipe: Identifiable, Hashable {
     let name: String
     let koreanName: String
     let emoji: String
+    let imageName: String
     let difficulty: Difficulty
     let cookingTime: Int // minutes
     let servingSize: Int

@@ -16,7 +16,7 @@ enum DefaultRecipeData {
         "Soup/Stew": [
             DefaultRecipe(
                 id: UUID(), categoryName: "Soup/Stew",
-                name: "Kimchi Jjigae", koreanName: "김치찌개", emoji: "🍲",
+                name: "Kimchi Jjigae", koreanName: "김치찌개", emoji: "🍲", imageName: "kimchi_jjigae",
                 difficulty: .easy, cookingTime: 25, servingSize: 2,
                 description: "Spicy kimchi stew with pork and tofu",
                 ingredients: [
@@ -39,7 +39,7 @@ enum DefaultRecipeData {
             ),
             DefaultRecipe(
                 id: UUID(), categoryName: "Soup/Stew",
-                name: "Doenjang Jjigae", koreanName: "된장찌개", emoji: "🫕",
+                name: "Doenjang Jjigae", koreanName: "된장찌개", emoji: "🫕", imageName: "doenjang_jjigae",
                 difficulty: .easy, cookingTime: 20, servingSize: 2,
                 description: "Fermented soybean paste stew with vegetables",
                 ingredients: [
@@ -62,7 +62,7 @@ enum DefaultRecipeData {
             ),
             DefaultRecipe(
                 id: UUID(), categoryName: "Soup/Stew",
-                name: "Sundubu Jjigae", koreanName: "순두부찌개", emoji: "🥘",
+                name: "Sundubu Jjigae", koreanName: "순두부찌개", emoji: "🥘", imageName: "sundubu_jjigae",
                 difficulty: .easy, cookingTime: 20, servingSize: 2,
                 description: "Soft tofu stew with seafood or pork",
                 ingredients: [
@@ -86,7 +86,7 @@ enum DefaultRecipeData {
             ),
             DefaultRecipe(
                 id: UUID(), categoryName: "Soup/Stew",
-                name: "Budae Jjigae", koreanName: "부대찌개", emoji: "🍲",
+                name: "Budae Jjigae", koreanName: "부대찌개", emoji: "🍲", imageName: "budae_jjigae",
                 difficulty: .medium, cookingTime: 30, servingSize: 3,
                 description: "Army stew with sausage, spam, and ramyeon",
                 ingredients: [
@@ -111,7 +111,7 @@ enum DefaultRecipeData {
             ),
             DefaultRecipe(
                 id: UUID(), categoryName: "Soup/Stew",
-                name: "Tteokguk", koreanName: "떡국", emoji: "🥣",
+                name: "Tteokguk", koreanName: "떡국", emoji: "🥣", imageName: "tteokguk",
                 difficulty: .easy, cookingTime: 30, servingSize: 2,
                 description: "Rice cake soup traditionally eaten on New Year's",
                 ingredients: [
@@ -133,7 +133,7 @@ enum DefaultRecipeData {
             ),
             DefaultRecipe(
                 id: UUID(), categoryName: "Soup/Stew",
-                name: "Samgyetang", koreanName: "삼계탕", emoji: "🐔",
+                name: "Samgyetang", koreanName: "삼계탕", emoji: "🐔", imageName: "samgyetang",
                 difficulty: .hard, cookingTime: 60, servingSize: 2,
                 description: "Ginseng chicken soup with rice stuffing",
                 ingredients: [
@@ -163,7 +163,7 @@ enum DefaultRecipeData {
         "Stir-fry": [
             DefaultRecipe(
                 id: UUID(), categoryName: "Stir-fry",
-                name: "Jeyuk Bokkeum", koreanName: "제육볶음", emoji: "🥩",
+                name: "Jeyuk Bokkeum", koreanName: "제육볶음", emoji: "🥩", imageName: "jeyuk_bokkeum",
                 difficulty: .easy, cookingTime: 20, servingSize: 2,
                 description: "Spicy stir-fried pork with gochujang",
                 ingredients: [
@@ -186,7 +186,7 @@ enum DefaultRecipeData {
             ),
             DefaultRecipe(
                 id: UUID(), categoryName: "Stir-fry",
-                name: "Tteokbokki", koreanName: "떡볶이", emoji: "🌶️",
+                name: "Tteokbokki", koreanName: "떡볶이", emoji: "🌶️", imageName: "tteokbokki",
                 difficulty: .easy, cookingTime: 20, servingSize: 2,
                 description: "Spicy stir-fried rice cakes",
                 ingredients: [
@@ -210,7 +210,7 @@ enum DefaultRecipeData {
             ),
             DefaultRecipe(
                 id: UUID(), categoryName: "Stir-fry",
-                name: "Ojingeo Bokkeum", koreanName: "오징어볶음", emoji: "🦑",
+                name: "Ojingeo Bokkeum", koreanName: "오징어볶음", emoji: "🦑", imageName: "ojingeo_bokkeum",
                 difficulty: .medium, cookingTime: 15, servingSize: 2,
                 description: "Spicy stir-fried squid with vegetables",
                 ingredients: [
@@ -233,7 +233,7 @@ enum DefaultRecipeData {
             ),
             DefaultRecipe(
                 id: UUID(), categoryName: "Stir-fry",
-                name: "Dakgalbi", koreanName: "닭갈비", emoji: "🍗",
+                name: "Dakgalbi", koreanName: "닭갈비", emoji: "🍗", imageName: "dakgalbi",
                 difficulty: .medium, cookingTime: 25, servingSize: 2,
                 description: "Spicy stir-fried chicken with cabbage and rice cakes",
                 ingredients: [
@@ -257,7 +257,7 @@ enum DefaultRecipeData {
             ),
             DefaultRecipe(
                 id: UUID(), categoryName: "Stir-fry",
-                name: "Japchae", koreanName: "잡채", emoji: "🍜",
+                name: "Japchae", koreanName: "잡채", emoji: "🍜", imageName: "japchae",
                 difficulty: .medium, cookingTime: 30, servingSize: 3,
                 description: "Glass noodles stir-fried with vegetables and beef",
                 ingredients: [
@@ -289,7 +289,7 @@ enum DefaultRecipeData {
         "Rice": [
             DefaultRecipe(
                 id: UUID(), categoryName: "Rice",
-                name: "Bibimbap", koreanName: "비빔밥", emoji: "🍚",
+                name: "Bibimbap", koreanName: "비빔밥", emoji: "🍚", imageName: "bibimbap",
                 difficulty: .medium, cookingTime: 30, servingSize: 2,
                 description: "Mixed rice with vegetables, meat, and gochujang",
                 ingredients: [
@@ -314,7 +314,7 @@ enum DefaultRecipeData {
             ),
             DefaultRecipe(
                 id: UUID(), categoryName: "Rice",
-                name: "Kimchi Fried Rice", koreanName: "김치볶음밥", emoji: "🍳",
+                name: "Kimchi Fried Rice", koreanName: "김치볶음밥", emoji: "🍳", imageName: "kimchi_fried_rice",
                 difficulty: .easy, cookingTime: 15, servingSize: 1,
                 description: "Fried rice with kimchi topped with a fried egg",
                 ingredients: [
@@ -337,7 +337,7 @@ enum DefaultRecipeData {
             ),
             DefaultRecipe(
                 id: UUID(), categoryName: "Rice",
-                name: "Tuna Mayo Rice", koreanName: "참치마요덮밥", emoji: "🐟",
+                name: "Tuna Mayo Rice", koreanName: "참치마요덮밥", emoji: "🐟", imageName: "tuna_mayo_rice",
                 difficulty: .easy, cookingTime: 10, servingSize: 1,
                 description: "Simple tuna and mayo over steamed rice",
                 ingredients: [
@@ -358,7 +358,7 @@ enum DefaultRecipeData {
             ),
             DefaultRecipe(
                 id: UUID(), categoryName: "Rice",
-                name: "Omurice", koreanName: "오므라이스", emoji: "🥚",
+                name: "Omurice", koreanName: "오므라이스", emoji: "🥚", imageName: "omurice",
                 difficulty: .medium, cookingTime: 20, servingSize: 1,
                 description: "Fried rice wrapped in a soft omelette",
                 ingredients: [
@@ -382,7 +382,7 @@ enum DefaultRecipeData {
             ),
             DefaultRecipe(
                 id: UUID(), categoryName: "Rice",
-                name: "Dolsot Bibimbap", koreanName: "돌솥비빔밥", emoji: "🔥",
+                name: "Dolsot Bibimbap", koreanName: "돌솥비빔밥", emoji: "🔥", imageName: "dolsot_bibimbap",
                 difficulty: .medium, cookingTime: 35, servingSize: 1,
                 description: "Hot stone pot bibimbap with crispy rice",
                 ingredients: [
@@ -411,7 +411,7 @@ enum DefaultRecipeData {
         "Noodles": [
             DefaultRecipe(
                 id: UUID(), categoryName: "Noodles",
-                name: "Kalguksu", koreanName: "칼국수", emoji: "🍜",
+                name: "Kalguksu", koreanName: "칼국수", emoji: "🍜", imageName: "kalguksu",
                 difficulty: .medium, cookingTime: 30, servingSize: 2,
                 description: "Hand-cut knife noodles in anchovy broth",
                 ingredients: [
@@ -433,7 +433,7 @@ enum DefaultRecipeData {
             ),
             DefaultRecipe(
                 id: UUID(), categoryName: "Noodles",
-                name: "Bibim Guksu", koreanName: "비빔국수", emoji: "🥢",
+                name: "Bibim Guksu", koreanName: "비빔국수", emoji: "🥢", imageName: "bibim_guksu",
                 difficulty: .easy, cookingTime: 15, servingSize: 1,
                 description: "Spicy cold mixed noodles",
                 ingredients: [
@@ -456,7 +456,7 @@ enum DefaultRecipeData {
             ),
             DefaultRecipe(
                 id: UUID(), categoryName: "Noodles",
-                name: "Japchae", koreanName: "잡채", emoji: "🍝",
+                name: "Japchae", koreanName: "잡채", emoji: "🍝", imageName: "japchae_noodles",
                 difficulty: .medium, cookingTime: 30, servingSize: 3,
                 description: "Sweet potato glass noodles with vegetables",
                 ingredients: [
@@ -479,7 +479,7 @@ enum DefaultRecipeData {
             ),
             DefaultRecipe(
                 id: UUID(), categoryName: "Noodles",
-                name: "Jjajangmyeon", koreanName: "짜장면", emoji: "🍜",
+                name: "Jjajangmyeon", koreanName: "짜장면", emoji: "🍜", imageName: "jjajangmyeon",
                 difficulty: .medium, cookingTime: 25, servingSize: 2,
                 description: "Noodles in black bean sauce",
                 ingredients: [
@@ -503,7 +503,7 @@ enum DefaultRecipeData {
             ),
             DefaultRecipe(
                 id: UUID(), categoryName: "Noodles",
-                name: "Ramyeon", koreanName: "라면", emoji: "🍜",
+                name: "Ramyeon", koreanName: "라면", emoji: "🍜", imageName: "ramyeon",
                 difficulty: .easy, cookingTime: 10, servingSize: 1,
                 description: "Korean instant noodles with egg and scallions",
                 ingredients: [
@@ -530,7 +530,7 @@ enum DefaultRecipeData {
         "Side Dishes": [
             DefaultRecipe(
                 id: UUID(), categoryName: "Side Dishes",
-                name: "Gyeran Mari", koreanName: "계란말이", emoji: "🥚",
+                name: "Gyeran Mari", koreanName: "계란말이", emoji: "🥚", imageName: "gyeran_mari",
                 difficulty: .easy, cookingTime: 10, servingSize: 2,
                 description: "Rolled egg omelette with vegetables",
                 ingredients: [
@@ -551,7 +551,7 @@ enum DefaultRecipeData {
             ),
             DefaultRecipe(
                 id: UUID(), categoryName: "Side Dishes",
-                name: "Gamja Jorim", koreanName: "감자조림", emoji: "🥔",
+                name: "Gamja Jorim", koreanName: "감자조림", emoji: "🥔", imageName: "gamja_jorim",
                 difficulty: .easy, cookingTime: 20, servingSize: 2,
                 description: "Braised potatoes in sweet soy glaze",
                 ingredients: [
@@ -573,7 +573,7 @@ enum DefaultRecipeData {
             ),
             DefaultRecipe(
                 id: UUID(), categoryName: "Side Dishes",
-                name: "Sigeumchi Namul", koreanName: "시금치나물", emoji: "🥬",
+                name: "Sigeumchi Namul", koreanName: "시금치나물", emoji: "🥬", imageName: "sigeumchi_namul",
                 difficulty: .easy, cookingTime: 10, servingSize: 2,
                 description: "Seasoned spinach side dish",
                 ingredients: [
@@ -594,7 +594,7 @@ enum DefaultRecipeData {
             ),
             DefaultRecipe(
                 id: UUID(), categoryName: "Side Dishes",
-                name: "Kongnamul Muchim", koreanName: "콩나물무침", emoji: "🌱",
+                name: "Kongnamul Muchim", koreanName: "콩나물무침", emoji: "🌱", imageName: "kongnamul_muchim",
                 difficulty: .easy, cookingTime: 10, servingSize: 2,
                 description: "Seasoned soybean sprouts",
                 ingredients: [
@@ -617,7 +617,7 @@ enum DefaultRecipeData {
             ),
             DefaultRecipe(
                 id: UUID(), categoryName: "Side Dishes",
-                name: "Eomuk Bokkeum", koreanName: "어묵볶음", emoji: "🍢",
+                name: "Eomuk Bokkeum", koreanName: "어묵볶음", emoji: "🍢", imageName: "eomuk_bokkeum",
                 difficulty: .easy, cookingTime: 10, servingSize: 2,
                 description: "Stir-fried fish cake with soy sauce",
                 ingredients: [
@@ -644,7 +644,7 @@ enum DefaultRecipeData {
         "One-Plate": [
             DefaultRecipe(
                 id: UUID(), categoryName: "One-Plate",
-                name: "Kimchijeon", koreanName: "김치전", emoji: "🥞",
+                name: "Kimchijeon", koreanName: "김치전", emoji: "🥞", imageName: "kimchijeon",
                 difficulty: .easy, cookingTime: 15, servingSize: 2,
                 description: "Crispy kimchi pancake",
                 ingredients: [
@@ -666,7 +666,7 @@ enum DefaultRecipeData {
             ),
             DefaultRecipe(
                 id: UUID(), categoryName: "One-Plate",
-                name: "Ramyeon", koreanName: "라면", emoji: "🍜",
+                name: "Ramyeon", koreanName: "라면", emoji: "🍜", imageName: "ramyeon_one_plate",
                 difficulty: .easy, cookingTime: 10, servingSize: 1,
                 description: "Quick Korean ramyeon with egg",
                 ingredients: [
@@ -684,7 +684,7 @@ enum DefaultRecipeData {
             ),
             DefaultRecipe(
                 id: UUID(), categoryName: "One-Plate",
-                name: "Cheese Toast", koreanName: "치즈토스트", emoji: "🧀",
+                name: "Cheese Toast", koreanName: "치즈토스트", emoji: "🧀", imageName: "cheese_toast",
                 difficulty: .easy, cookingTime: 10, servingSize: 1,
                 description: "Korean street-style cheese toast",
                 ingredients: [
@@ -706,7 +706,7 @@ enum DefaultRecipeData {
             ),
             DefaultRecipe(
                 id: UUID(), categoryName: "One-Plate",
-                name: "Gyeran Bap", koreanName: "계란밥", emoji: "🍳",
+                name: "Gyeran Bap", koreanName: "계란밥", emoji: "🍳", imageName: "gyeran_bap",
                 difficulty: .easy, cookingTime: 5, servingSize: 1,
                 description: "Simple egg over rice with sesame oil and soy sauce",
                 ingredients: [
@@ -727,7 +727,7 @@ enum DefaultRecipeData {
             ),
             DefaultRecipe(
                 id: UUID(), categoryName: "One-Plate",
-                name: "Chamchi Gimbap", koreanName: "참치김밥", emoji: "🍙",
+                name: "Chamchi Gimbap", koreanName: "참치김밥", emoji: "🍙", imageName: "chamchi_gimbap",
                 difficulty: .medium, cookingTime: 25, servingSize: 2,
                 description: "Tuna kimbap rolls",
                 ingredients: [

@@ -27,8 +27,7 @@ struct RecipeDetailView: View {
 
     private var heroSection: some View {
         VStack(spacing: 10) {
-            Text(recipe.emoji)
-                .font(.system(size: 64))
+            RecipeImageView(recipe: recipe, size: 120, cornerRadius: 20)
 
             Text(recipe.name)
                 .font(.system(size: 24, weight: .bold, design: .rounded))
