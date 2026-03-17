@@ -6,6 +6,11 @@
 import Foundation
 import Observation
 
+struct IdentifiableField: Identifiable {
+    let id = UUID()
+    var value: String
+}
+
 @Observable
 @MainActor
 final class CommunityViewModel {
@@ -26,8 +31,8 @@ final class CommunityViewModel {
     // Create post state
     var newTitle = ""
     var newDescription = ""
-    var newIngredients: [String] = [""]
-    var newSteps: [String] = [""]
+    var newIngredients: [IdentifiableField] = [IdentifiableField(value: "")]
+    var newSteps: [IdentifiableField] = [IdentifiableField(value: "")]
     var newCookingTime = 30
     var newDifficulty = "easy"
     var newServingSize = 2
@@ -144,10 +149,10 @@ final class CommunityViewModel {
         }
 
         let ingredients = newIngredients
-            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+            .map { $0.value.trimmingCharacters(in: .whitespacesAndNewlines) }
             .filter { !$0.isEmpty }
         let steps = newSteps
-            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+            .map { $0.value.trimmingCharacters(in: .whitespacesAndNewlines) }
             .filter { !$0.isEmpty }
 
         guard !ingredients.isEmpty else {
@@ -197,8 +202,8 @@ final class CommunityViewModel {
         editingPost = post
         newTitle = post.title
         newDescription = post.description ?? ""
-        newIngredients = post.ingredients.isEmpty ? [""] : post.ingredients
-        newSteps = post.steps.isEmpty ? [""] : post.steps
+        newIngredients = post.ingredients.isEmpty ? [IdentifiableField(value: "")] : post.ingredients.map { IdentifiableField(value: $0) }
+        newSteps = post.steps.isEmpty ? [IdentifiableField(value: "")] : post.steps.map { IdentifiableField(value: $0) }
         newCookingTime = post.cookingTime ?? 30
         newDifficulty = post.difficulty ?? "easy"
         newServingSize = post.servingSize ?? 2
@@ -215,10 +220,10 @@ final class CommunityViewModel {
         }
 
         let ingredients = newIngredients
-            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+            .map { $0.value.trimmingCharacters(in: .whitespacesAndNewlines) }
             .filter { !$0.isEmpty }
         let steps = newSteps
-            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+            .map { $0.value.trimmingCharacters(in: .whitespacesAndNewlines) }
             .filter { !$0.isEmpty }
 
         guard !ingredients.isEmpty else {
@@ -293,8 +298,8 @@ final class CommunityViewModel {
     func resetCreateForm() {
         newTitle = ""
         newDescription = ""
-        newIngredients = [""]
-        newSteps = [""]
+        newIngredients = [IdentifiableField(value: "")]
+        newSteps = [IdentifiableField(value: "")]
         newCookingTime = 30
         newDifficulty = "easy"
         newServingSize = 2
@@ -302,20 +307,20 @@ final class CommunityViewModel {
     }
 
     func addIngredientField() {
-        newIngredients.append("")
+        newIngredients.append(IdentifiableField(value: ""))
     }
 
-    func removeIngredientField(at index: Int) {
+    func removeIngredientField(id: UUID) {
         guard newIngredients.count > 1 else { return }
-        newIngredients.remove(at: index)
+        newIngredients.removeAll { $0.id == id }
     }
 
     func addStepField() {
-        newSteps.append("")
+        newSteps.append(IdentifiableField(value: ""))
     }
 
-    func removeStepField(at index: Int) {
+    func removeStepField(id: UUID) {
         guard newSteps.count > 1 else { return }
-        newSteps.remove(at: index)
+        newSteps.removeAll { $0.id == id }
     }
 }
