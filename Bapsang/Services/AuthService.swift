@@ -9,6 +9,7 @@ import Foundation
 import Observation
 import Supabase
 import AuthenticationServices
+import UIKit
 
 @Observable
 @MainActor
@@ -208,7 +209,10 @@ final class WebAuthContextProvider: NSObject, ASWebAuthenticationPresentationCon
     static let shared = WebAuthContextProvider()
 
     func presentationAnchor(for session: ASWebAuthenticationSession) -> ASPresentationAnchor {
-        ASPresentationAnchor()
+        let scene = UIApplication.shared.connectedScenes
+            .compactMap { $0 as? UIWindowScene }
+            .first { $0.activationState == .foregroundActive }
+        return scene?.keyWindow ?? UIWindow()
     }
 }
 
