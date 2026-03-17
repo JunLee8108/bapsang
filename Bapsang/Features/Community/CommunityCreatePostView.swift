@@ -12,6 +12,13 @@ struct CommunityCreatePostView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var selectedPhoto: PhotosPickerItem?
 
+    // Image repositioning state
+    @State private var imageOffset: CGSize = .zero
+    @State private var dragAccumulated: CGSize = .zero
+    @State private var imageFrameWidth: CGFloat = 0
+
+    private let imageFrameHeight: CGFloat = 200
+
     private var isEditing: Bool { viewModel.editingPost != nil }
 
     var body: some View {
@@ -42,6 +49,8 @@ struct CommunityCreatePostView: View {
                 ToolbarItem(placement: .confirmationAction) {
                     Button(isEditing ? "Save" : "Post") {
                         guard let userId = authService.currentUserId else { return }
+                        // Crop image to visible region before uploading
+                        applyCroppedImage()
                         Task {
                             let success: Bool
                             if isEditing {
@@ -81,28 +90,84 @@ struct CommunityCreatePostView: View {
     // MARK: - Image
 
     private var imageSection: some View {
-        PhotosPicker(selection: $selectedPhoto, matching: .images) {
-            Group {
-                if let data = viewModel.newImageData, let uiImage = UIImage(data: data) {
+        Group {
+            if let data = viewModel.newImageData, let uiImage = UIImage(data: data) {
+                // Selected image with drag-to-reposition
+                GeometryReader { geo in
+                    let frameWidth = geo.size.width
+                    let maxOffset = calcMaxOffset(imageSize: uiImage.size, frameWidth: frameWidth)
+                    let _ = DispatchQueue.main.async { imageFrameWidth = frameWidth }
+
                     ZStack(alignment: .topTrailing) {
                         Image(uiImage: uiImage)
                             .resizable()
                             .scaledToFill()
-                            .frame(height: 200)
+                            .offset(imageOffset)
+                            .frame(width: frameWidth, height: imageFrameHeight)
+                            .clipped()
                             .clipShape(RoundedRectangle(cornerRadius: 16))
+                            .contentShape(Rectangle())
+                            .gesture(
+                                DragGesture()
+                                    .onChanged { value in
+                                        let newX = dragAccumulated.width + value.translation.width
+                                        let newY = dragAccumulated.height + value.translation.height
+                                        imageOffset = CGSize(
+                                            width: clamp(newX, max: maxOffset.width),
+                                            height: clamp(newY, max: maxOffset.height)
+                                        )
+                                    }
+                                    .onEnded { value in
+                                        let newX = dragAccumulated.width + value.translation.width
+                                        let newY = dragAccumulated.height + value.translation.height
+                                        dragAccumulated = CGSize(
+                                            width: clamp(newX, max: maxOffset.width),
+                                            height: clamp(newY, max: maxOffset.height)
+                                        )
+                                    }
+                            )
 
-                        Button {
-                            viewModel.newImageData = nil
-                            selectedPhoto = nil
-                        } label: {
-                            Image(systemName: "xmark.circle.fill")
-                                .font(.system(size: 24))
+                        // Action buttons
+                        HStack(spacing: 6) {
+                            PhotosPicker(selection: $selectedPhoto, matching: .images) {
+                                Image(systemName: "arrow.triangle.2.circlepath.camera.fill")
+                                    .font(.system(size: 14))
+                                    .foregroundStyle(.white)
+                                    .padding(8)
+                                    .background(Circle().fill(.black.opacity(0.5)))
+                            }
+
+                            Button {
+                                viewModel.newImageData = nil
+                                selectedPhoto = nil
+                                resetImageOffset()
+                            } label: {
+                                Image(systemName: "xmark")
+                                    .font(.system(size: 14, weight: .semibold))
+                                    .foregroundStyle(.white)
+                                    .padding(8)
+                                    .background(Circle().fill(.black.opacity(0.5)))
+                            }
+                        }
+                        .padding(8)
+                    }
+                    .overlay(alignment: .bottom) {
+                        if maxOffset.width > 0 || maxOffset.height > 0 {
+                            Text("Drag to reposition")
+                                .font(.system(size: 11, weight: .medium))
                                 .foregroundStyle(.white)
-                                .shadow(radius: 2)
-                                .padding(8)
+                                .padding(.horizontal, 10)
+                                .padding(.vertical, 5)
+                                .background(Capsule().fill(.black.opacity(0.45)))
+                                .padding(.bottom, 10)
+                                .allowsHitTesting(false)
                         }
                     }
-                } else if isEditing, let imageUrl = viewModel.editingPost?.imageUrl, let url = URL(string: imageUrl) {
+                }
+                .frame(height: imageFrameHeight)
+            } else if isEditing, let imageUrl = viewModel.editingPost?.imageUrl, let url = URL(string: imageUrl) {
+                // Existing image in edit mode — tap to change
+                PhotosPicker(selection: $selectedPhoto, matching: .images) {
                     ZStack(alignment: .bottomTrailing) {
                         AsyncImage(url: url) { phase in
                             switch phase {
@@ -110,12 +175,12 @@ struct CommunityCreatePostView: View {
                                 image
                                     .resizable()
                                     .scaledToFill()
-                                    .frame(height: 200)
+                                    .frame(height: imageFrameHeight)
                                     .clipShape(RoundedRectangle(cornerRadius: 16))
                             default:
                                 RoundedRectangle(cornerRadius: 16)
                                     .fill(.gray.opacity(0.1))
-                                    .frame(height: 200)
+                                    .frame(height: imageFrameHeight)
                                     .overlay { ProgressView() }
                             }
                         }
@@ -128,7 +193,11 @@ struct CommunityCreatePostView: View {
                             .background(Capsule().fill(.black.opacity(0.5)))
                             .padding(12)
                     }
-                } else {
+                }
+                .buttonStyle(.plain)
+            } else {
+                // Empty state — tap to add photo
+                PhotosPicker(selection: $selectedPhoto, matching: .images) {
                     VStack(spacing: 10) {
                         Image(systemName: "camera.fill")
                             .font(.system(size: 28))
@@ -151,16 +220,79 @@ struct CommunityCreatePostView: View {
                             .foregroundStyle(.orange.opacity(0.3))
                     )
                 }
+                .buttonStyle(.plain)
             }
         }
-        .buttonStyle(.plain)
         .onChange(of: selectedPhoto) { _, newItem in
             Task {
                 if let data = try? await newItem?.loadTransferable(type: Data.self) {
                     viewModel.newImageData = data
+                    resetImageOffset()
                 }
             }
         }
+    }
+
+    // MARK: - Image Repositioning Helpers
+
+    /// Calculate max draggable offset based on how much the image overflows the frame
+    private func calcMaxOffset(imageSize: CGSize, frameWidth: CGFloat) -> CGSize {
+        guard imageSize.width > 0, imageSize.height > 0 else { return .zero }
+        let scale = max(frameWidth / imageSize.width, imageFrameHeight / imageSize.height)
+        let scaledW = imageSize.width * scale
+        let scaledH = imageSize.height * scale
+        return CGSize(
+            width: max(0, (scaledW - frameWidth) / 2),
+            height: max(0, (scaledH - imageFrameHeight) / 2)
+        )
+    }
+
+    private func clamp(_ value: CGFloat, max limit: CGFloat) -> CGFloat {
+        min(max(value, -limit), limit)
+    }
+
+    private func resetImageOffset() {
+        imageOffset = .zero
+        dragAccumulated = .zero
+    }
+
+    /// Replace image data with cropped version matching the visible region
+    private func applyCroppedImage() {
+        guard let data = viewModel.newImageData,
+              let uiImage = UIImage(data: data),
+              imageFrameWidth > 0,
+              (imageOffset != .zero) else { return }
+
+        let cropped = cropImage(uiImage, frameWidth: imageFrameWidth)
+        if let jpegData = cropped.jpegData(compressionQuality: 0.85) {
+            viewModel.newImageData = jpegData
+        }
+    }
+
+    /// Crop image to the visible region based on current offset
+    private func cropImage(_ uiImage: UIImage, frameWidth: CGFloat) -> UIImage {
+        guard uiImage.size.width > 0, uiImage.size.height > 0 else { return uiImage }
+
+        let imgW = uiImage.size.width
+        let imgH = uiImage.size.height
+        let scale = max(frameWidth / imgW, imageFrameHeight / imgH)
+        let scaledW = imgW * scale
+        let scaledH = imgH * scale
+
+        // Center of scaled image + offset → visible rect origin in scaled coords
+        let visibleX = (scaledW - frameWidth) / 2 - imageOffset.width
+        let visibleY = (scaledH - imageFrameHeight) / 2 - imageOffset.height
+
+        // Convert back to original image coordinates
+        let cropRect = CGRect(
+            x: visibleX / scale,
+            y: visibleY / scale,
+            width: frameWidth / scale,
+            height: imageFrameHeight / scale
+        )
+
+        guard let cgImage = uiImage.cgImage?.cropping(to: cropRect) else { return uiImage }
+        return UIImage(cgImage: cgImage, scale: uiImage.scale, orientation: uiImage.imageOrientation)
     }
 
     // MARK: - Title
