@@ -35,7 +35,6 @@ struct RecommendationView: View {
                         category: category,
                         recipes: viewModel.recipesForSelectedCategory
                     )
-                    .presentationDetents([.medium, .large])
                     .presentationDragIndicator(.visible)
                 }
             }
