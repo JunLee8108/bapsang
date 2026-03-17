@@ -212,29 +212,12 @@ final class CommunityService {
 
     func fetchUserProfile(userId: UUID) async throws -> UserProfile {
         return try await supabase
-            .from("user_profiles")
-            .select()
+            .from("users")
+            .select("id, display_name, total_likes_received, total_posts, badges, created_at")
             .eq("id", value: userId)
             .single()
             .execute()
             .value
-    }
-
-    func ensureProfile(userId: UUID) async throws {
-        let existing: [UserProfile] = try await supabase
-            .from("user_profiles")
-            .select()
-            .eq("id", value: userId)
-            .execute()
-            .value
-
-        if existing.isEmpty {
-            let payload = ProfilePayload(id: userId)
-            try await supabase
-                .from("user_profiles")
-                .insert(payload)
-                .execute()
-        }
     }
 
     // MARK: - Image Upload
@@ -335,10 +318,6 @@ private struct ReportPayload: Encodable {
         case reporterId = "reporter_id"
         case reason
     }
-}
-
-private struct ProfilePayload: Encodable {
-    let id: UUID
 }
 
 private struct CommunityLike: Codable {

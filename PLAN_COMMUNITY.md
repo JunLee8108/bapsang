@@ -56,15 +56,15 @@
 | created_at | TIMESTAMPTZ | |
 - UNIQUE(reporter_id, post_id) — 중복 신고 방지
 
-#### `user_profiles` - 사용자 프로필 (배지용)
+#### `public.users` 확장 컬럼 (커뮤니티용)
+> `user_profiles` 테이블은 `public.users`에 통합됨 — 별도 테이블 없음
+
 | 컬럼 | 타입 | 설명 |
 |------|------|------|
-| id | UUID (PK, FK → auth.users) | |
-| display_name | TEXT | 닉네임 |
+| display_name | TEXT (default 'Chef') | 닉네임 |
 | total_likes_received | INT (default 0) | 총 받은 좋아요 수 |
 | total_posts | INT (default 0) | 총 게시물 수 |
 | badges | JSONB (default []) | 획득한 배지 목록 |
-| created_at | TIMESTAMPTZ | |
 
 ### RLS 정책
 - 모든 인증된 사용자: 게시물/댓글/좋아요 읽기 가능
@@ -72,9 +72,9 @@
 - 신고 3건 이상 → `is_hidden = true` 자동 처리 (DB trigger)
 
 ### DB Trigger / Function
-- 좋아요 생성/삭제 시 → `community_posts.likes_count` 업데이트 + `user_profiles.total_likes_received` 업데이트
+- 좋아요 생성/삭제 시 → `community_posts.likes_count` 업데이트 + `public.users.total_likes_received` 업데이트
 - 댓글 생성/삭제 시 → `community_posts.comments_count` 업데이트
-- 게시물 생성 시 → `user_profiles.total_posts` 업데이트
+- 게시물 생성 시 → `public.users.total_posts` 업데이트
 - 좋아요 수 기준 배지 자동 부여 (trigger)
 
 ---
@@ -97,7 +97,7 @@
 ### 새로운 파일
 - `Models/CommunityPost.swift` — 게시물 모델
 - `Models/CommunityComment.swift` — 댓글 모델
-- `Models/UserProfile.swift` — 프로필 + 배지 모델
+- `Models/UserProfile.swift` — 프로필 + 배지 모델 (public.users에서 조회)
 - `Models/Badge.swift` — 배지 enum 정의
 
 ---
@@ -114,7 +114,7 @@
 - `addComment(postId:, content:)` — 댓글 작성
 - `deleteComment(id:)` — 댓글 삭제
 - `reportPost(postId:, reason:)` — 신고
-- `fetchUserProfile(userId:)` — 프로필 조회
+- `fetchUserProfile(userId:)` — 프로필 조회 (public.users 테이블)
 - `checkIfLiked(postId:)` — 좋아요 여부 확인
 
 ---

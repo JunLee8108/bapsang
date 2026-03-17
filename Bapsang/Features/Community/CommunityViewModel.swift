@@ -168,9 +168,6 @@ final class CommunityViewModel {
         defer { isSubmitting = false }
 
         do {
-            // Ensure profile exists
-            try await service.ensureProfile(userId: userId)
-
             // Upload image if selected
             var imageUrl: String?
             if let imageData = newImageData {

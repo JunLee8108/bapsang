@@ -126,6 +126,8 @@ Entry point for selecting ingredients and getting AI-powered Korean recipe recom
 
 ### Current Tables
 - `public.users` — auth.users 1:1 mapping (with trigger) ✅
+  - Includes community columns: `display_name`, `total_likes_received`, `total_posts`, `badges`
+  - No separate `user_profiles` table — all profile data lives here
 
 ### New Tables Needed
 
@@ -266,14 +268,17 @@ CREATE TRIGGER on_chat_sessions_updated
 auth.users
     │
     ▼ (1:1 trigger)
-public.users
+public.users  ← 커뮤니티 프로필 통합 (display_name, badges, stats)
     │
-    ├──▶ recipes (1:N)         — AI가 생성한 레시피
+    ├──▶ recipes (1:N)            — AI가 생성한 레시피
     │       │
     │       ├──▶ saved_recipes (N:M join) — 북마크
     │       └──▶ recent_views  (1:N)      — 최근 조회
     │
-    ├──▶ chat_sessions (1:N)   — AI 대화 기록
+    ├──▶ chat_sessions (1:N)      — AI 대화 기록
+    ├──▶ community_posts (1:N)    — 커뮤니티 게시물
+    ├──▶ community_likes (1:N)    — 좋아요
+    ├──▶ community_comments (1:N) — 댓글
     │
     └── recipe_categories (read-only, shared)
 ```
