@@ -58,6 +58,7 @@ struct CommunityPostCard: View {
                             .frame(maxWidth: .infinity)
                             .frame(height: 200)
                             .clipped()
+                            .contentShape(Rectangle())
                             .clipShape(RoundedRectangle(cornerRadius: 12))
                     case .failure:
                         RoundedRectangle(cornerRadius: 12)
