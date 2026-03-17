@@ -18,15 +18,8 @@ struct CommunityPostCard: View {
                     .foregroundStyle(.orange.opacity(0.7))
 
                 VStack(alignment: .leading, spacing: 2) {
-                    HStack(spacing: 4) {
-                        Text(post.userProfile?.displayName ?? "Chef")
-                            .font(.system(size: 14, weight: .semibold, design: .rounded))
-
-                        if let badge = post.userProfile?.topBadge {
-                            Text(badge.icon)
-                                .font(.system(size: 12))
-                        }
-                    }
+                    Text("Chef")
+                        .font(.system(size: 14, weight: .semibold, design: .rounded))
 
                     Text(post.timeAgo)
                         .font(.system(size: 11))

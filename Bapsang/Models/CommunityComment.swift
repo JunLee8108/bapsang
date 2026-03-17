@@ -12,16 +12,12 @@ struct CommunityComment: Codable, Identifiable {
     let content: String
     let createdAt: Date?
 
-    // Joined data
-    var userProfile: UserProfile?
-
     enum CodingKeys: String, CodingKey {
         case id
         case userId = "user_id"
         case postId = "post_id"
         case content
         case createdAt = "created_at"
-        case userProfile = "user_profiles"
     }
 
     var timeAgo: String {

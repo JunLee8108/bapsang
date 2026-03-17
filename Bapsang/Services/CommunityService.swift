@@ -15,7 +15,7 @@ final class CommunityService {
     func fetchPosts(sortBy: PostSort = .latest) async throws -> [CommunityPost] {
         let query = supabase
             .from("community_posts")
-            .select("*, user_profiles(*)")
+            .select()
             .eq("is_hidden", value: false)
 
         switch sortBy {
@@ -29,7 +29,7 @@ final class CommunityService {
     func fetchPost(id: UUID) async throws -> CommunityPost {
         return try await supabase
             .from("community_posts")
-            .select("*, user_profiles(*)")
+            .select()
             .eq("id", value: id)
             .single()
             .execute()
@@ -47,22 +47,22 @@ final class CommunityService {
         servingSize: Int?,
         imageUrl: String?
     ) async throws -> CommunityPost {
-        let payload: [String: AnyJSON] = [
-            "user_id": .string(userId.uuidString),
-            "title": .string(title),
-            "description": description.map { .string($0) } ?? .null,
-            "ingredients": .array(ingredients.map { .string($0) }),
-            "steps": .array(steps.map { .string($0) }),
-            "cooking_time": cookingTime.map { .integer($0) } ?? .null,
-            "difficulty": difficulty.map { .string($0) } ?? .null,
-            "serving_size": servingSize.map { .integer($0) } ?? .null,
-            "image_url": imageUrl.map { .string($0) } ?? .null,
-        ]
+        let payload = CreatePostPayload(
+            userId: userId,
+            title: title,
+            description: description,
+            ingredients: ingredients,
+            steps: steps,
+            cookingTime: cookingTime,
+            difficulty: difficulty,
+            servingSize: servingSize,
+            imageUrl: imageUrl
+        )
 
         return try await supabase
             .from("community_posts")
             .insert(payload)
-            .select("*, user_profiles(*)")
+            .select()
             .single()
             .execute()
             .value
@@ -101,10 +101,7 @@ final class CommunityService {
                 .execute()
             return false
         } else {
-            let payload: [String: AnyJSON] = [
-                "post_id": .string(postId.uuidString),
-                "user_id": .string(userId.uuidString),
-            ]
+            let payload = LikePayload(postId: postId, userId: userId)
             try await supabase
                 .from("community_likes")
                 .insert(payload)
@@ -118,7 +115,7 @@ final class CommunityService {
     func fetchComments(postId: UUID) async throws -> [CommunityComment] {
         return try await supabase
             .from("community_comments")
-            .select("*, user_profiles(*)")
+            .select()
             .eq("post_id", value: postId)
             .order("created_at", ascending: true)
             .execute()
@@ -126,16 +123,12 @@ final class CommunityService {
     }
 
     func addComment(postId: UUID, userId: UUID, content: String) async throws -> CommunityComment {
-        let payload: [String: AnyJSON] = [
-            "post_id": .string(postId.uuidString),
-            "user_id": .string(userId.uuidString),
-            "content": .string(content),
-        ]
+        let payload = CommentPayload(postId: postId, userId: userId, content: content)
 
         return try await supabase
             .from("community_comments")
             .insert(payload)
-            .select("*, user_profiles(*)")
+            .select()
             .single()
             .execute()
             .value
@@ -152,11 +145,7 @@ final class CommunityService {
     // MARK: - Reports
 
     func reportPost(postId: UUID, reporterId: UUID, reason: String) async throws {
-        let payload: [String: AnyJSON] = [
-            "post_id": .string(postId.uuidString),
-            "reporter_id": .string(reporterId.uuidString),
-            "reason": .string(reason),
-        ]
+        let payload = ReportPayload(postId: postId, reporterId: reporterId, reason: reason)
 
         try await supabase
             .from("community_reports")
@@ -185,9 +174,7 @@ final class CommunityService {
             .value
 
         if existing.isEmpty {
-            let payload: [String: AnyJSON] = [
-                "id": .string(userId.uuidString),
-            ]
+            let payload = ProfilePayload(id: userId)
             try await supabase
                 .from("user_profiles")
                 .insert(payload)
@@ -216,11 +203,72 @@ final class CommunityService {
     }
 }
 
-// MARK: - Supporting Types
+// MARK: - Sort
 
 enum PostSort: String, CaseIterable {
     case latest = "Latest"
     case popular = "Popular"
+}
+
+// MARK: - Payload Types
+
+private struct CreatePostPayload: Encodable {
+    let userId: UUID
+    let title: String
+    let description: String?
+    let ingredients: [String]
+    let steps: [String]
+    let cookingTime: Int?
+    let difficulty: String?
+    let servingSize: Int?
+    let imageUrl: String?
+
+    enum CodingKeys: String, CodingKey {
+        case userId = "user_id"
+        case title, description, ingredients, steps
+        case cookingTime = "cooking_time"
+        case difficulty
+        case servingSize = "serving_size"
+        case imageUrl = "image_url"
+    }
+}
+
+private struct LikePayload: Encodable {
+    let postId: UUID
+    let userId: UUID
+
+    enum CodingKeys: String, CodingKey {
+        case postId = "post_id"
+        case userId = "user_id"
+    }
+}
+
+private struct CommentPayload: Encodable {
+    let postId: UUID
+    let userId: UUID
+    let content: String
+
+    enum CodingKeys: String, CodingKey {
+        case postId = "post_id"
+        case userId = "user_id"
+        case content
+    }
+}
+
+private struct ReportPayload: Encodable {
+    let postId: UUID
+    let reporterId: UUID
+    let reason: String
+
+    enum CodingKeys: String, CodingKey {
+        case postId = "post_id"
+        case reporterId = "reporter_id"
+        case reason
+    }
+}
+
+private struct ProfilePayload: Encodable {
+    let id: UUID
 }
 
 private struct CommunityLike: Codable {

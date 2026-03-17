@@ -99,17 +99,8 @@ struct CommunityPostDetailView: View {
                 .foregroundStyle(.orange.opacity(0.7))
 
             VStack(alignment: .leading, spacing: 2) {
-                HStack(spacing: 6) {
-                    Text(post.userProfile?.displayName ?? "Chef")
-                        .font(.system(size: 16, weight: .semibold, design: .rounded))
-
-                    if let badges = post.userProfile?.badges {
-                        ForEach(badges, id: \.self) { badge in
-                            Text(badge.icon)
-                                .font(.system(size: 14))
-                        }
-                    }
-                }
+                Text("Chef")
+                    .font(.system(size: 16, weight: .semibold, design: .rounded))
 
                 Text(post.timeAgo)
                     .font(.system(size: 12))
@@ -325,13 +316,8 @@ struct CommunityPostDetailView: View {
                     .font(.system(size: 16))
                     .foregroundStyle(.orange.opacity(0.6))
 
-                Text(comment.userProfile?.displayName ?? "Chef")
+                Text("Chef")
                     .font(.system(size: 13, weight: .semibold, design: .rounded))
-
-                if let badge = comment.userProfile?.topBadge {
-                    Text(badge.icon)
-                        .font(.system(size: 11))
-                }
 
                 Spacer()
 
