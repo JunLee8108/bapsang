@@ -78,6 +78,16 @@ struct CommunityPostDetailView: View {
         .navigationTitle("Recipe")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
+            if let userId = authService.currentUserId {
+                ToolbarItem(placement: .topBarTrailing) {
+                    BookmarkButton(
+                        sourceType: .community,
+                        sourceId: post.id,
+                        userId: userId
+                    )
+                }
+            }
+
             ToolbarItem(placement: .topBarTrailing) {
                 Menu {
                     if isOwnPost {

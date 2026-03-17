@@ -7,6 +7,7 @@ import SwiftUI
 
 struct RecipeDetailView: View {
     let recipe: DefaultRecipe
+    @Environment(AuthService.self) private var authService
     @State private var showFullImage = false
 
     var body: some View {
@@ -22,6 +23,17 @@ struct RecipeDetailView: View {
         }
         .navigationTitle(recipe.name)
         .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            if let userId = authService.currentUserId {
+                ToolbarItem(placement: .topBarTrailing) {
+                    BookmarkButton(
+                        sourceType: .default,
+                        sourceId: recipe.id,
+                        userId: userId
+                    )
+                }
+            }
+        }
         .fullScreenCover(isPresented: $showFullImage) {
             FullScreenImageView(recipe: recipe)
         }
