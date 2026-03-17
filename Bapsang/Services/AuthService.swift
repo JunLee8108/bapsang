@@ -9,12 +9,11 @@ import Foundation
 import Observation
 import Supabase
 import AuthenticationServices
-import UIKit
 
 @Observable
 @MainActor
 final class AuthService {
-    
+
     // MARK: - State
 
     private(set) var session: Session?
@@ -26,13 +25,13 @@ final class AuthService {
     var isAuthenticated: Bool { session != nil }
     var currentUserId: UUID? { session?.user.id }
     var currentUserEmail: String? { session?.user.email }
-    
+
     // MARK: - Init
-    
+
     init() {
         Task { await restoreAndListen() }
     }
-    
+
     // MARK: - Session Restore & Listener
 
     private func restoreAndListen() async {
@@ -95,19 +94,19 @@ final class AuthService {
             self.hasCompletedOnboarding = true
         }
     }
-    
+
     // MARK: - Apple Sign In
-    
+
     func signInWithApple(credential: ASAuthorizationAppleIDCredential) async {
         guard let identityToken = credential.identityToken,
               let tokenString = String(data: identityToken, encoding: .utf8) else {
             self.error = .custom("Apple 로그인 토큰을 가져올 수 없습니다.")
             return
         }
-        
+
         isLoading = true
         defer { isLoading = false }
-        
+
         do {
             let session = try await supabase.auth.signInWithIdToken(
                 credentials: .init(
@@ -120,7 +119,7 @@ final class AuthService {
             self.error = .custom("Apple 로그인에 실패했습니다: \(error.localizedDescription)")
         }
     }
-    
+
     // MARK: - Google Sign In
 
     func signInWithGoogle() async {
@@ -130,35 +129,15 @@ final class AuthService {
         do {
             try await supabase.auth.signInWithOAuth(
                 provider: .google,
-                redirectTo: URL(string: "bapsang://login-callback"),
-                launchFlow: { @MainActor url in
-                    try await withCheckedThrowingContinuation { continuation in
-                        let session = ASWebAuthenticationSession(
-                            url: url,
-                            callbackURLScheme: "bapsang"
-                        ) { callbackURL, error in
-                            if let error {
-                                continuation.resume(throwing: error)
-                            } else if let callbackURL {
-                                continuation.resume(returning: callbackURL)
-                            }
-                        }
-                        session.presentationContextProvider = WebAuthContextProvider.shared
-                        session.prefersEphemeralWebBrowserSession = false
-                        session.start()
-                    }
-                }
+                redirectTo: URL(string: "bapsang://login-callback")
             )
-        } catch let error as ASWebAuthenticationSessionError
-            where error.code == .canceledLogin {
-            // User cancelled — do nothing
         } catch {
             self.error = .custom("Google 로그인에 실패했습니다: \(error.localizedDescription)")
         }
     }
-    
+
     // MARK: - Sign Out
-    
+
     func signOut() async {
         do {
             try await supabase.auth.signOut()
@@ -167,13 +146,13 @@ final class AuthService {
             self.error = .custom("로그아웃에 실패했습니다.")
         }
     }
-    
+
     // MARK: - Delete Account
-    
+
     func deleteAccount() async {
         isLoading = true
         defer { isLoading = false }
-        
+
         do {
             try await supabase.functions.invoke(
                 "delete-user",
@@ -185,9 +164,9 @@ final class AuthService {
             self.error = .custom("계정 삭제에 실패했습니다.")
         }
     }
-    
+
     // MARK: - Clear Error
-    
+
     func clearError() {
         self.error = nil
     }
@@ -203,26 +182,13 @@ private struct OnboardingStatus: Codable {
     }
 }
 
-// MARK: - Web Auth Context Provider
-
-final class WebAuthContextProvider: NSObject, ASWebAuthenticationPresentationContextProviding {
-    static let shared = WebAuthContextProvider()
-
-    func presentationAnchor(for session: ASWebAuthenticationSession) -> ASPresentationAnchor {
-        let scene = UIApplication.shared.connectedScenes
-            .compactMap { $0 as? UIWindowScene }
-            .first { $0.activationState == .foregroundActive }
-        return scene?.keyWindow ?? UIWindow()
-    }
-}
-
 // MARK: - Auth Error
 
 enum AuthError: LocalizedError, Identifiable {
     case custom(String)
-    
+
     var id: String { errorDescription ?? "unknown" }
-    
+
     var errorDescription: String? {
         switch self {
         case .custom(let message):
