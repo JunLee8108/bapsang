@@ -29,8 +29,10 @@ struct CommunityPostDetailView: View {
                             case .success(let image):
                                 image
                                     .resizable()
-                                    .scaledToFit()
+                                    .scaledToFill()
                                     .frame(maxWidth: .infinity)
+                                    .frame(height: 200)
+                                    .clipped()
                                     .clipShape(RoundedRectangle(cornerRadius: 16))
                             case .failure:
                                 RoundedRectangle(cornerRadius: 16)
