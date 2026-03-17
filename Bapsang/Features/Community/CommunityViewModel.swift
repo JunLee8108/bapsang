@@ -130,6 +130,12 @@ final class CommunityViewModel {
             comments.append(comment)
             commentText = ""
 
+            // Cache current user's display name if missing
+            if authorNames[userId] == nil {
+                let names = try await service.fetchDisplayNames(userIds: [userId])
+                authorNames.merge(names) { _, new in new }
+            }
+
             if let index = posts.firstIndex(where: { $0.id == postId }) {
                 posts[index].commentsCount += 1
             }
@@ -199,6 +205,13 @@ final class CommunityViewModel {
             )
 
             posts.insert(post, at: 0)
+
+            // Cache current user's display name if missing
+            if authorNames[userId] == nil {
+                let names = try await service.fetchDisplayNames(userIds: [userId])
+                authorNames.merge(names) { _, new in new }
+            }
+
             resetCreateForm()
             return true
         } catch {
