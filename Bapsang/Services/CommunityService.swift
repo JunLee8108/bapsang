@@ -68,6 +68,38 @@ final class CommunityService {
             .value
     }
 
+    func updatePost(
+        id: UUID,
+        title: String,
+        description: String?,
+        ingredients: [String],
+        steps: [String],
+        cookingTime: Int?,
+        difficulty: String?,
+        servingSize: Int?,
+        imageUrl: String?
+    ) async throws -> CommunityPost {
+        let payload = UpdatePostPayload(
+            title: title,
+            description: description,
+            ingredients: ingredients,
+            steps: steps,
+            cookingTime: cookingTime,
+            difficulty: difficulty,
+            servingSize: servingSize,
+            imageUrl: imageUrl
+        )
+
+        return try await supabase
+            .from("community_posts")
+            .update(payload)
+            .eq("id", value: id)
+            .select()
+            .single()
+            .execute()
+            .value
+    }
+
     func deletePost(id: UUID) async throws {
         try await supabase
             .from("community_posts")
@@ -221,6 +253,25 @@ private struct CreatePostPayload: Encodable {
 
     enum CodingKeys: String, CodingKey {
         case userId = "user_id"
+        case title, description, ingredients, steps
+        case cookingTime = "cooking_time"
+        case difficulty
+        case servingSize = "serving_size"
+        case imageUrl = "image_url"
+    }
+}
+
+private struct UpdatePostPayload: Encodable {
+    let title: String
+    let description: String?
+    let ingredients: [String]
+    let steps: [String]
+    let cookingTime: Int?
+    let difficulty: String?
+    let servingSize: Int?
+    let imageUrl: String?
+
+    enum CodingKeys: String, CodingKey {
         case title, description, ingredients, steps
         case cookingTime = "cooking_time"
         case difficulty
