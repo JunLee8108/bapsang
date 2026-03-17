@@ -189,11 +189,7 @@ final class CommunityService {
 
         try await supabase.storage
             .from("community-images")
-            .upload(
-                path: fileName,
-                file: data,
-                options: .init(contentType: "image/jpeg")
-            )
+            .upload(fileName, data: data, options: .init(contentType: "image/jpeg"))
 
         let publicURL = try supabase.storage
             .from("community-images")
