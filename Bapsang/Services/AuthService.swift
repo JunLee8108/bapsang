@@ -129,7 +129,7 @@ final class AuthService {
         do {
             try await supabase.auth.signInWithOAuth(
                 provider: .google,
-                redirectTo: URL(string: "onemeal://login-callback")
+                redirectTo: URL(string: "bapsang://login-callback")
             )
         } catch {
             self.error = .custom("Google 로그인에 실패했습니다: \(error.localizedDescription)")
