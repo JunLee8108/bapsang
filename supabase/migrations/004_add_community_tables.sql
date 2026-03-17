@@ -2,33 +2,26 @@
 -- Bapsang — Community Tables Migration
 -- Run this in Supabase SQL Editor
 -- ============================================================
+-- NOTE: Community stats (total_likes_received, total_posts, badges)
+-- live in public.users — no separate user_profiles table needed.
+-- ============================================================
 
--- 1. user_profiles — User profile with badge tracking
-CREATE TABLE public.user_profiles (
-    id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
-    display_name TEXT NOT NULL DEFAULT 'Chef',
-    total_likes_received INT NOT NULL DEFAULT 0,
-    total_posts INT NOT NULL DEFAULT 0,
-    badges JSONB NOT NULL DEFAULT '[]',
-    created_at TIMESTAMPTZ DEFAULT now()
-);
+-- 1. Add community columns to public.users
+ALTER TABLE public.users
+    ADD COLUMN IF NOT EXISTS total_likes_received INT NOT NULL DEFAULT 0,
+    ADD COLUMN IF NOT EXISTS total_posts          INT NOT NULL DEFAULT 0,
+    ADD COLUMN IF NOT EXISTS badges               JSONB NOT NULL DEFAULT '[]';
 
-ALTER TABLE public.user_profiles ENABLE ROW LEVEL SECURITY;
+UPDATE public.users SET display_name = 'Chef' WHERE display_name IS NULL;
+ALTER TABLE public.users ALTER COLUMN display_name SET DEFAULT 'Chef';
 
-CREATE POLICY "profiles_select_authenticated"
-    ON public.user_profiles FOR SELECT
+-- Allow all authenticated users to read any user's profile
+-- (needed for showing display_name / badges on community posts)
+DROP POLICY IF EXISTS "users_select_own" ON public.users;
+CREATE POLICY "users_select_community_profile"
+    ON public.users FOR SELECT
     TO authenticated
     USING (true);
-
-CREATE POLICY "profiles_insert_own"
-    ON public.user_profiles FOR INSERT
-    TO authenticated
-    WITH CHECK (auth.uid() = id);
-
-CREATE POLICY "profiles_update_own"
-    ON public.user_profiles FOR UPDATE
-    TO authenticated
-    USING (auth.uid() = id);
 
 
 -- 2. community_posts — User-shared recipes
@@ -149,7 +142,7 @@ CREATE POLICY "reports_insert_own"
 -- Triggers & Functions
 -- ============================================================
 
--- Auto-update likes_count on community_posts
+-- Auto-update likes_count on community_posts + total_likes_received on users
 CREATE OR REPLACE FUNCTION public.update_post_likes_count()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -157,14 +150,14 @@ BEGIN
         UPDATE public.community_posts
             SET likes_count = likes_count + 1
             WHERE id = NEW.post_id;
-        UPDATE public.user_profiles
+        UPDATE public.users
             SET total_likes_received = total_likes_received + 1
             WHERE id = (SELECT user_id FROM public.community_posts WHERE id = NEW.post_id);
     ELSIF TG_OP = 'DELETE' THEN
         UPDATE public.community_posts
             SET likes_count = likes_count - 1
             WHERE id = OLD.post_id;
-        UPDATE public.user_profiles
+        UPDATE public.users
             SET total_likes_received = total_likes_received - 1
             WHERE id = (SELECT user_id FROM public.community_posts WHERE id = OLD.post_id);
     END IF;
@@ -201,17 +194,16 @@ CREATE TRIGGER on_community_comment_changed
     EXECUTE FUNCTION public.update_post_comments_count();
 
 
--- Auto-update total_posts on user_profiles
+-- Auto-update total_posts on public.users
 CREATE OR REPLACE FUNCTION public.update_user_total_posts()
 RETURNS TRIGGER AS $$
 BEGIN
     IF TG_OP = 'INSERT' THEN
-        INSERT INTO public.user_profiles (id)
-            VALUES (NEW.user_id)
-            ON CONFLICT (id) DO UPDATE
-            SET total_posts = public.user_profiles.total_posts + 1;
+        UPDATE public.users
+            SET total_posts = total_posts + 1
+            WHERE id = NEW.user_id;
     ELSIF TG_OP = 'DELETE' THEN
-        UPDATE public.user_profiles
+        UPDATE public.users
             SET total_posts = total_posts - 1
             WHERE id = OLD.user_id;
     END IF;
@@ -251,7 +243,7 @@ CREATE TRIGGER on_report_check_threshold
     EXECUTE FUNCTION public.check_report_threshold();
 
 
--- Auto-update badges based on milestones
+-- Auto-update badges based on milestones (on public.users)
 CREATE OR REPLACE FUNCTION public.update_user_badges()
 RETURNS TRIGGER AS $$
 DECLARE
@@ -261,27 +253,22 @@ BEGIN
     current_badges := NEW.badges;
     new_badges := current_badges;
 
-    -- 🌱 새싹 요리사: first post
     IF NEW.total_posts >= 1 AND NOT current_badges @> '"first_post"' THEN
         new_badges := new_badges || '"first_post"'::jsonb;
     END IF;
 
-    -- 📝 다작 요리사: 10 posts
     IF NEW.total_posts >= 10 AND NOT current_badges @> '"prolific"' THEN
         new_badges := new_badges || '"prolific"'::jsonb;
     END IF;
 
-    -- 🔥 인기 요리사: 10 likes
     IF NEW.total_likes_received >= 10 AND NOT current_badges @> '"popular"' THEN
         new_badges := new_badges || '"popular"'::jsonb;
     END IF;
 
-    -- ⭐ 스타 요리사: 50 likes
     IF NEW.total_likes_received >= 50 AND NOT current_badges @> '"star"' THEN
         new_badges := new_badges || '"star"'::jsonb;
     END IF;
 
-    -- 👑 마스터 셰프: 100 likes
     IF NEW.total_likes_received >= 100 AND NOT current_badges @> '"master"' THEN
         new_badges := new_badges || '"master"'::jsonb;
     END IF;
@@ -294,7 +281,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
-CREATE TRIGGER on_profile_badge_update
-    BEFORE UPDATE ON public.user_profiles
+CREATE TRIGGER on_user_badge_update
+    BEFORE UPDATE ON public.users
     FOR EACH ROW
     EXECUTE FUNCTION public.update_user_badges();
