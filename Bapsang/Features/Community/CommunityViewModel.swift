@@ -242,6 +242,10 @@ final class CommunityViewModel {
             // Upload new image if selected, otherwise keep existing
             var imageUrl = editingPost.imageUrl
             if let imageData = newImageData {
+                // Delete the old image from storage before uploading the new one
+                if let oldUrl = editingPost.imageUrl {
+                    try? await service.deleteImage(urlString: oldUrl)
+                }
                 imageUrl = try await service.uploadImage(data: imageData, userId: userId)
             }
 
