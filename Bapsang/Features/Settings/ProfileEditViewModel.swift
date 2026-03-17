@@ -30,7 +30,7 @@ final class ProfileEditViewModel {
         defer { isLoading = false }
 
         do {
-            let profile: UserProfile = try await supabase
+            let profile: ProfileEditDTO = try await supabase
                 .from("users")
                 .select("display_name, preferred_spice_level, dietary_restrictions")
                 .eq("id", value: userId)
@@ -79,7 +79,7 @@ final class ProfileEditViewModel {
 
 // MARK: - DTOs
 
-private struct UserProfile: Codable {
+private struct ProfileEditDTO: Codable {
     let displayName: String
     let preferredSpiceLevel: String
     let dietaryRestrictions: [String]
