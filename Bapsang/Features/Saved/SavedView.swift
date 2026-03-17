@@ -8,6 +8,7 @@ import SwiftUI
 struct SavedView: View {
     @Environment(AuthService.self) private var authService
     @State private var viewModel = SavedViewModel()
+    @State private var communityViewModel = CommunityViewModel()
 
     var body: some View {
         NavigationStack {
@@ -44,6 +45,8 @@ struct SavedView: View {
             guard let userId = authService.currentUserId else { return }
             await viewModel.loadSavedIds(userId: userId)
             await viewModel.fetchSaved(userId: userId)
+            // Sync author names to communityViewModel for detail view
+            communityViewModel.authorNames.merge(viewModel.authorNames) { _, new in new }
         }
     }
 
@@ -113,7 +116,10 @@ struct SavedView: View {
                 Button {
                     viewModel.selectedTab = tab
                     guard let userId = authService.currentUserId else { return }
-                    Task { await viewModel.fetchSaved(userId: userId) }
+                    Task {
+                        await viewModel.fetchSaved(userId: userId)
+                        communityViewModel.authorNames.merge(viewModel.authorNames) { _, new in new }
+                    }
                 } label: {
                     Text(tab.label)
                         .font(.system(size: 13, weight: .semibold, design: .rounded))
@@ -202,10 +208,19 @@ struct SavedView: View {
             } else {
                 LazyVStack(spacing: 14) {
                     ForEach(viewModel.savedCommunityPosts) { post in
-                        SavedCommunityPostCard(
-                            post: post,
-                            authorName: viewModel.displayName(for: post.userId)
-                        )
+                        NavigationLink {
+                            CommunityPostDetailView(
+                                post: post,
+                                viewModel: communityViewModel
+                            )
+                            .environment(authService)
+                        } label: {
+                            SavedCommunityPostCard(
+                                post: post,
+                                authorName: viewModel.displayName(for: post.userId)
+                            )
+                        }
+                        .buttonStyle(.plain)
                     }
                 }
             }
