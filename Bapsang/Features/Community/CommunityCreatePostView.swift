@@ -258,12 +258,13 @@ struct CommunityCreatePostView: View {
         dragAccumulated = .zero
     }
 
-    /// Replace image data with cropped version matching the visible region
+    /// Replace image data with cropped version matching the visible region.
+    /// Always crops — even when offset is zero — so the uploaded image
+    /// exactly matches what the user sees in the preview.
     private func applyCroppedImage() {
         guard let data = viewModel.newImageData,
               let uiImage = UIImage(data: data),
-              imageFrameWidth > 0,
-              (imageOffset != .zero) else { return }
+              imageFrameWidth > 0 else { return }
 
         let cropped = cropImage(uiImage, frameWidth: imageFrameWidth)
         if let jpegData = cropped.jpegData(compressionQuality: 0.85) {
@@ -271,12 +272,24 @@ struct CommunityCreatePostView: View {
         }
     }
 
-    /// Crop image to the visible region based on current offset
-    private func cropImage(_ uiImage: UIImage, frameWidth: CGFloat) -> UIImage {
-        guard uiImage.size.width > 0, uiImage.size.height > 0 else { return uiImage }
+    /// Normalize UIImage so its pixel data matches the displayed orientation.
+    /// After this call, `cgImage` pixels are in the same orientation as `size`.
+    private func normalizeOrientation(_ image: UIImage) -> UIImage {
+        guard image.imageOrientation != .up else { return image }
+        UIGraphicsBeginImageContextWithOptions(image.size, false, image.scale)
+        image.draw(in: CGRect(origin: .zero, size: image.size))
+        let normalized = UIGraphicsGetImageFromCurrentImageContext() ?? image
+        UIGraphicsEndImageContext()
+        return normalized
+    }
 
-        let imgW = uiImage.size.width
-        let imgH = uiImage.size.height
+    /// Crop image to the visible region based on current offset.
+    private func cropImage(_ uiImage: UIImage, frameWidth: CGFloat) -> UIImage {
+        let normalized = normalizeOrientation(uiImage)
+        guard normalized.size.width > 0, normalized.size.height > 0 else { return uiImage }
+
+        let imgW = normalized.size.width
+        let imgH = normalized.size.height
         let scale = max(frameWidth / imgW, imageFrameHeight / imgH)
         let scaledW = imgW * scale
         let scaledH = imgH * scale
@@ -293,8 +306,8 @@ struct CommunityCreatePostView: View {
             height: imageFrameHeight / scale
         )
 
-        guard let cgImage = uiImage.cgImage?.cropping(to: cropRect) else { return uiImage }
-        return UIImage(cgImage: cgImage, scale: uiImage.scale, orientation: uiImage.imageOrientation)
+        guard let cgImage = normalized.cgImage?.cropping(to: cropRect) else { return uiImage }
+        return UIImage(cgImage: cgImage, scale: normalized.scale, orientation: .up)
     }
 
     // MARK: - Title
