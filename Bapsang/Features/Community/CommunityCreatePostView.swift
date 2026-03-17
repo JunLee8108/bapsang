@@ -171,7 +171,7 @@ struct CommunityCreatePostView: View {
                 // Existing image in edit mode — tap to change
                 PhotosPicker(selection: $selectedPhoto, matching: .images) {
                     ZStack(alignment: .bottomTrailing) {
-                        AsyncImage(url: url) { phase in
+                        CachedAsyncImage(url: url) { phase in
                             switch phase {
                             case .success(let image):
                                 Color.clear
