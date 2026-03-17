@@ -49,8 +49,10 @@ struct CommunityCreatePostView: View {
                 ToolbarItem(placement: .confirmationAction) {
                     Button(isEditing ? "Save" : "Post") {
                         guard let userId = authService.currentUserId else { return }
-                        // Crop image to visible region before uploading
+                        // Crop image to visible region before uploading,
+                        // then reset offset so the view doesn't visually jump.
                         applyCroppedImage()
+                        resetImageOffset()
                         Task {
                             let success: Bool
                             if isEditing {
@@ -172,10 +174,13 @@ struct CommunityCreatePostView: View {
                         AsyncImage(url: url) { phase in
                             switch phase {
                             case .success(let image):
-                                image
-                                    .resizable()
-                                    .scaledToFill()
+                                Color.clear
                                     .frame(height: imageFrameHeight)
+                                    .overlay {
+                                        image
+                                            .resizable()
+                                            .scaledToFill()
+                                    }
                                     .clipped()
                                     .contentShape(Rectangle())
                                     .clipShape(RoundedRectangle(cornerRadius: 16))
