@@ -16,7 +16,10 @@ struct CategorySheetView: View {
                     headerSection
 
                     ForEach(recipes) { recipe in
-                        RecipeRow(recipe: recipe)
+                        NavigationLink(value: recipe) {
+                            RecipeRowContent(recipe: recipe)
+                        }
+                        .buttonStyle(.plain)
                     }
                 }
                 .padding(.horizontal, 20)
@@ -24,6 +27,9 @@ struct CategorySheetView: View {
             }
             .navigationTitle(category.name)
             .navigationBarTitleDisplayMode(.inline)
+            .navigationDestination(for: DefaultRecipe.self) { recipe in
+                RecipeDetailView(recipe: recipe)
+            }
         }
     }
 
@@ -48,16 +54,13 @@ struct CategorySheetView: View {
     }
 }
 
-// MARK: - Recipe Row
+// MARK: - Recipe Row Content
 
-private struct RecipeRow: View {
+private struct RecipeRowContent: View {
     let recipe: DefaultRecipe
 
     var body: some View {
-        Button {
-            // Phase 3: navigate to recipe detail
-        } label: {
-            HStack(spacing: 14) {
+        HStack(spacing: 14) {
                 Text(recipe.emoji)
                     .font(.system(size: 32))
                     .frame(width: 48, height: 48)
@@ -96,13 +99,11 @@ private struct RecipeRow: View {
                     .font(.system(size: 12, weight: .semibold))
                     .foregroundStyle(.tertiary)
             }
-            .padding(14)
-            .background {
-                RoundedRectangle(cornerRadius: 14)
-                    .fill(.ultraThinMaterial)
-                    .shadow(color: .black.opacity(0.04), radius: 6, y: 3)
-            }
+        .padding(14)
+        .background {
+            RoundedRectangle(cornerRadius: 14)
+                .fill(.ultraThinMaterial)
+                .shadow(color: .black.opacity(0.04), radius: 6, y: 3)
         }
-        .buttonStyle(.plain)
     }
 }

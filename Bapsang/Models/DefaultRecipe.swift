@@ -13,7 +13,10 @@ struct DefaultRecipe: Identifiable, Hashable {
     let emoji: String
     let difficulty: Difficulty
     let cookingTime: Int // minutes
+    let servingSize: Int
     let description: String
+    let ingredients: [String]
+    let steps: [String]
 
     enum Difficulty: String, Hashable {
         case easy, medium, hard
