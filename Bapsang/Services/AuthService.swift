@@ -121,16 +121,36 @@ final class AuthService {
     }
     
     // MARK: - Google Sign In
-    
+
     func signInWithGoogle() async {
         isLoading = true
         defer { isLoading = false }
-        
+
         do {
             try await supabase.auth.signInWithOAuth(
                 provider: .google,
-                redirectTo: URL(string: "bapsang://login-callback")
+                redirectTo: URL(string: "bapsang://login-callback"),
+                launchFlow: { @MainActor url in
+                    try await withCheckedThrowingContinuation { continuation in
+                        let session = ASWebAuthenticationSession(
+                            url: url,
+                            callbackURLScheme: "bapsang"
+                        ) { callbackURL, error in
+                            if let error {
+                                continuation.resume(throwing: error)
+                            } else if let callbackURL {
+                                continuation.resume(returning: callbackURL)
+                            }
+                        }
+                        session.presentationContextProvider = WebAuthContextProvider.shared
+                        session.prefersEphemeralWebBrowserSession = false
+                        session.start()
+                    }
+                }
             )
+        } catch let error as ASWebAuthenticationSessionError
+            where error.code == .canceledLogin {
+            // User cancelled — do nothing
         } catch {
             self.error = .custom("Google 로그인에 실패했습니다: \(error.localizedDescription)")
         }
@@ -179,6 +199,16 @@ private struct OnboardingStatus: Codable {
 
     enum CodingKeys: String, CodingKey {
         case hasCompletedOnboarding = "has_completed_onboarding"
+    }
+}
+
+// MARK: - Web Auth Context Provider
+
+final class WebAuthContextProvider: NSObject, ASWebAuthenticationPresentationContextProviding {
+    static let shared = WebAuthContextProvider()
+
+    func presentationAnchor(for session: ASWebAuthenticationSession) -> ASPresentationAnchor {
+        ASPresentationAnchor()
     }
 }
 
