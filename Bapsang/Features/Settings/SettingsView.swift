@@ -27,12 +27,40 @@ struct SettingsView: View {
                         sectionCard {
                             VStack(spacing: 0) {
                                 sectionHeader("Account")
-                                
+
                                 infoRow(
                                     icon: "envelope.fill",
                                     label: "Email",
                                     value: authService.currentUserEmail ?? "-"
                                 )
+
+                                Divider()
+                                    .padding(.horizontal, 16)
+
+                                NavigationLink {
+                                    ProfileEditView()
+                                } label: {
+                                    HStack(spacing: 12) {
+                                        Image(systemName: "person.fill")
+                                            .font(.system(size: 15))
+                                            .foregroundStyle(.orange)
+                                            .frame(width: 28)
+
+                                        Text("Profile")
+                                            .font(.system(size: 15))
+                                            .foregroundStyle(.primary)
+
+                                        Spacer()
+
+                                        Image(systemName: "chevron.right")
+                                            .font(.system(size: 12, weight: .semibold))
+                                            .foregroundStyle(.quaternary)
+                                    }
+                                    .padding(.horizontal, 16)
+                                    .padding(.vertical, 13)
+                                    .contentShape(Rectangle())
+                                }
+                                .buttonStyle(.plain)
                             }
                         }
                         
