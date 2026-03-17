@@ -65,6 +65,9 @@
 | total_likes_received | INT (default 0) | 총 받은 좋아요 수 |
 | total_posts | INT (default 0) | 총 게시물 수 |
 | badges | JSONB (default []) | 획득한 배지 목록 |
+| preferred_spice_level | TEXT (default 'medium') | 선호 매운맛 (mild/medium/spicy/extra_spicy) |
+| dietary_restrictions | JSONB (default []) | 식이 제한 목록 |
+| has_completed_onboarding | BOOLEAN (default false) | 온보딩 완료 여부 |
 
 ### RLS 정책
 - 모든 인증된 사용자: 게시물/댓글/좋아요 읽기 가능

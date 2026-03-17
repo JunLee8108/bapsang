@@ -6,11 +6,15 @@
 -- live in public.users — no separate user_profiles table needed.
 -- ============================================================
 
--- 1. Add community columns to public.users
+-- 1. Add community + onboarding columns to public.users
 ALTER TABLE public.users
-    ADD COLUMN IF NOT EXISTS total_likes_received INT NOT NULL DEFAULT 0,
-    ADD COLUMN IF NOT EXISTS total_posts          INT NOT NULL DEFAULT 0,
-    ADD COLUMN IF NOT EXISTS badges               JSONB NOT NULL DEFAULT '[]';
+    ADD COLUMN IF NOT EXISTS total_likes_received    INT NOT NULL DEFAULT 0,
+    ADD COLUMN IF NOT EXISTS total_posts             INT NOT NULL DEFAULT 0,
+    ADD COLUMN IF NOT EXISTS badges                  JSONB NOT NULL DEFAULT '[]',
+    ADD COLUMN IF NOT EXISTS preferred_spice_level   TEXT NOT NULL DEFAULT 'medium'
+        CHECK (preferred_spice_level IN ('mild', 'medium', 'spicy', 'extra_spicy')),
+    ADD COLUMN IF NOT EXISTS dietary_restrictions    JSONB NOT NULL DEFAULT '[]',
+    ADD COLUMN IF NOT EXISTS has_completed_onboarding BOOLEAN NOT NULL DEFAULT false;
 
 UPDATE public.users SET display_name = 'Chef' WHERE display_name IS NULL;
 ALTER TABLE public.users ALTER COLUMN display_name SET DEFAULT 'Chef';
