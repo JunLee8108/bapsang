@@ -34,6 +34,9 @@ final class CommunityViewModel {
     var newImageData: Data?
     var isSubmitting = false
 
+    // Edit post state
+    var editingPost: CommunityPost?
+
     // Report
     var showReportSheet = false
     var reportReason = ""
@@ -186,6 +189,77 @@ final class CommunityViewModel {
             return true
         } catch {
             errorMessage = "게시물 작성에 실패했습니다."
+            return false
+        }
+    }
+
+    func populateFormForEdit(_ post: CommunityPost) {
+        editingPost = post
+        newTitle = post.title
+        newDescription = post.description ?? ""
+        newIngredients = post.ingredients.isEmpty ? [""] : post.ingredients
+        newSteps = post.steps.isEmpty ? [""] : post.steps
+        newCookingTime = post.cookingTime ?? 30
+        newDifficulty = post.difficulty ?? "easy"
+        newServingSize = post.servingSize ?? 2
+        newImageData = nil
+    }
+
+    func updatePost(userId: UUID) async -> Bool {
+        guard let editingPost else { return false }
+
+        let title = newTitle.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !title.isEmpty else {
+            errorMessage = "제목을 입력해주세요."
+            return false
+        }
+
+        let ingredients = newIngredients
+            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+            .filter { !$0.isEmpty }
+        let steps = newSteps
+            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+            .filter { !$0.isEmpty }
+
+        guard !ingredients.isEmpty else {
+            errorMessage = "재료를 하나 이상 입력해주세요."
+            return false
+        }
+        guard !steps.isEmpty else {
+            errorMessage = "조리 단계를 하나 이상 입력해주세요."
+            return false
+        }
+
+        isSubmitting = true
+        defer { isSubmitting = false }
+
+        do {
+            // Upload new image if selected, otherwise keep existing
+            var imageUrl = editingPost.imageUrl
+            if let imageData = newImageData {
+                imageUrl = try await service.uploadImage(data: imageData, userId: userId)
+            }
+
+            let updated = try await service.updatePost(
+                id: editingPost.id,
+                title: title,
+                description: newDescription.isEmpty ? nil : newDescription,
+                ingredients: ingredients,
+                steps: steps,
+                cookingTime: newCookingTime,
+                difficulty: newDifficulty,
+                servingSize: newServingSize,
+                imageUrl: imageUrl
+            )
+
+            if let index = posts.firstIndex(where: { $0.id == editingPost.id }) {
+                posts[index] = updated
+            }
+            self.editingPost = nil
+            resetCreateForm()
+            return true
+        } catch {
+            errorMessage = "게시물 수정에 실패했습니다."
             return false
         }
     }

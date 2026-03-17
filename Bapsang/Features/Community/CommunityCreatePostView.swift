@@ -12,6 +12,8 @@ struct CommunityCreatePostView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var selectedPhoto: PhotosPickerItem?
 
+    private var isEditing: Bool { viewModel.editingPost != nil }
+
     var body: some View {
         NavigationStack {
             ScrollView {
@@ -27,20 +29,26 @@ struct CommunityCreatePostView: View {
                 .padding(.top, 8)
                 .padding(.bottom, 40)
             }
-            .navigationTitle("New Recipe")
+            .navigationTitle(isEditing ? "Edit Recipe" : "New Recipe")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") {
+                        viewModel.editingPost = nil
                         viewModel.resetCreateForm()
                         dismiss()
                     }
                 }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Post") {
+                    Button(isEditing ? "Save" : "Post") {
                         guard let userId = authService.currentUserId else { return }
                         Task {
-                            let success = await viewModel.createPost(userId: userId)
+                            let success: Bool
+                            if isEditing {
+                                success = await viewModel.updatePost(userId: userId)
+                            } else {
+                                success = await viewModel.createPost(userId: userId)
+                            }
                             if success { dismiss() }
                         }
                     }
@@ -55,7 +63,7 @@ struct CommunityCreatePostView: View {
                         Color.black.opacity(0.3).ignoresSafeArea()
                         VStack(spacing: 12) {
                             ProgressView()
-                            Text("Posting...")
+                            Text(isEditing ? "Saving..." : "Posting...")
                                 .font(.system(size: 14, weight: .medium))
                                 .foregroundStyle(.white)
                         }
@@ -75,15 +83,13 @@ struct CommunityCreatePostView: View {
     private var imageSection: some View {
         PhotosPicker(selection: $selectedPhoto, matching: .images) {
             Group {
-                if viewModel.newImageData != nil {
+                if let data = viewModel.newImageData, let uiImage = UIImage(data: data) {
                     ZStack(alignment: .topTrailing) {
-                        if let data = viewModel.newImageData, let uiImage = UIImage(data: data) {
-                            Image(uiImage: uiImage)
-                                .resizable()
-                                .scaledToFill()
-                                .frame(height: 200)
-                                .clipShape(RoundedRectangle(cornerRadius: 16))
-                        }
+                        Image(uiImage: uiImage)
+                            .resizable()
+                            .scaledToFill()
+                            .frame(height: 200)
+                            .clipShape(RoundedRectangle(cornerRadius: 16))
 
                         Button {
                             viewModel.newImageData = nil
@@ -95,6 +101,32 @@ struct CommunityCreatePostView: View {
                                 .shadow(radius: 2)
                                 .padding(8)
                         }
+                    }
+                } else if isEditing, let imageUrl = viewModel.editingPost?.imageUrl, let url = URL(string: imageUrl) {
+                    ZStack(alignment: .bottomTrailing) {
+                        AsyncImage(url: url) { phase in
+                            switch phase {
+                            case .success(let image):
+                                image
+                                    .resizable()
+                                    .scaledToFill()
+                                    .frame(height: 200)
+                                    .clipShape(RoundedRectangle(cornerRadius: 16))
+                            default:
+                                RoundedRectangle(cornerRadius: 16)
+                                    .fill(.gray.opacity(0.1))
+                                    .frame(height: 200)
+                                    .overlay { ProgressView() }
+                            }
+                        }
+
+                        Text("Tap to change")
+                            .font(.system(size: 12, weight: .medium))
+                            .foregroundStyle(.white)
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 6)
+                            .background(Capsule().fill(.black.opacity(0.5)))
+                            .padding(12)
                     }
                 } else {
                     VStack(spacing: 10) {

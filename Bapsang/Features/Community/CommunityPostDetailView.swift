@@ -11,6 +11,7 @@ struct CommunityPostDetailView: View {
     @Environment(AuthService.self) private var authService
     @Environment(\.dismiss) private var dismiss
     @State private var showDeleteConfirm = false
+    @State private var showEditSheet = false
     @FocusState private var isCommentFocused: Bool
 
     private var isOwnPost: Bool {
@@ -77,6 +78,13 @@ struct CommunityPostDetailView: View {
             ToolbarItem(placement: .topBarTrailing) {
                 Menu {
                     if isOwnPost {
+                        Button {
+                            viewModel.populateFormForEdit(post)
+                            showEditSheet = true
+                        } label: {
+                            Label("Edit Post", systemImage: "pencil")
+                        }
+
                         Button(role: .destructive) {
                             showDeleteConfirm = true
                         } label: {
@@ -106,6 +114,9 @@ struct CommunityPostDetailView: View {
             Button("Cancel", role: .cancel) {}
         } message: {
             Text("This action cannot be undone.")
+        }
+        .sheet(isPresented: $showEditSheet) {
+            CommunityCreatePostView(viewModel: viewModel)
         }
         .sheet(isPresented: $viewModel.showReportSheet) {
             reportSheet
