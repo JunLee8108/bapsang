@@ -49,7 +49,7 @@ struct CommunityPostCard: View {
 
             // Image
             if let imageUrl = post.imageUrl, let url = URL(string: imageUrl) {
-                AsyncImage(url: url) { phase in
+                CachedAsyncImage(url: url) { phase in
                     switch phase {
                     case .success(let image):
                         Color.clear
