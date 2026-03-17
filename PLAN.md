@@ -194,26 +194,23 @@ CREATE INDEX idx_recipes_user_id ON public.recipes(user_id);
 CREATE INDEX idx_recipes_category_id ON public.recipes(category_id);
 ```
 
-#### 3. `saved_recipes` — User's bookmarked recipes
+#### 3. ~~`saved_recipes`~~ → `saved_items` (replaced)
+> **`saved_recipes` 테이블은 폐기됨** (migration `008_drop_saved_recipes.sql`로 DROP).
+> `recipes` (AI 생성) 테이블만 참조하는 구조였기 때문에, 기본 레시피와 커뮤니티 레시피를
+> 모두 저장할 수 없었음. 이를 대체하는 `saved_items` 테이블이 도입됨 (migration `007_add_saved_items.sql`).
+
 ```sql
-CREATE TABLE public.saved_recipes (
+-- NEW: saved_items (multi-source bookmarks)
+CREATE TABLE public.saved_items (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
-    recipe_id UUID NOT NULL REFERENCES public.recipes(id) ON DELETE CASCADE,
+    source_type TEXT NOT NULL CHECK (source_type IN ('default', 'community')),
+    source_id UUID NOT NULL,
     created_at TIMESTAMPTZ DEFAULT now(),
-    UNIQUE(user_id, recipe_id)
+    UNIQUE(user_id, source_type, source_id)
 );
-
-ALTER TABLE public.saved_recipes ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "saved_select_own"
-    ON public.saved_recipes FOR SELECT
-    USING (auth.uid() = user_id);
-CREATE POLICY "saved_insert_own"
-    ON public.saved_recipes FOR INSERT
-    WITH CHECK (auth.uid() = user_id);
-CREATE POLICY "saved_delete_own"
-    ON public.saved_recipes FOR DELETE
-    USING (auth.uid() = user_id);
+-- source_type: 'default' = 기본 제공 레시피, 'community' = 커뮤니티 게시물
+-- AI 레시피 추가 시 source_type에 'ai' 값 추가 예정
 ```
 
 #### 4. `recent_views` — Recently viewed recipes (for recommendation page)
@@ -274,9 +271,9 @@ public.users  ← 프로필 통합 (display_name, badges, stats, spice, dietary,
     │
     ├──▶ recipes (1:N)            — AI가 생성한 레시피
     │       │
-    │       ├──▶ saved_recipes (N:M join) — 북마크
     │       └──▶ recent_views  (1:N)      — 최근 조회
     │
+    ├──▶ saved_items (1:N)         — 북마크 (default/community/ai)
     ├──▶ chat_sessions (1:N)      — AI 대화 기록
     ├──▶ community_posts (1:N)    — 커뮤니티 게시물
     ├──▶ community_likes (1:N)    — 좋아요
