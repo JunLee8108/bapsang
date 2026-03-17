@@ -309,18 +309,18 @@ struct CommunityCreatePostView: View {
                 }
             }
 
-            ForEach(Array(viewModel.newIngredients.enumerated()), id: \.offset) { index, _ in
+            ForEach($viewModel.newIngredients) { $field in
                 HStack(spacing: 8) {
                     Circle()
                         .fill(.orange.opacity(0.7))
                         .frame(width: 6, height: 6)
 
-                    TextField("e.g. 2 cups rice", text: $viewModel.newIngredients[index])
+                    TextField("e.g. 2 cups rice", text: $field.value)
                         .font(.system(size: 14))
 
                     if viewModel.newIngredients.count > 1 {
                         Button {
-                            viewModel.removeIngredientField(at: index)
+                            viewModel.removeIngredientField(id: field.id)
                         } label: {
                             Image(systemName: "minus.circle")
                                 .font(.system(size: 16))
@@ -352,7 +352,7 @@ struct CommunityCreatePostView: View {
                 }
             }
 
-            ForEach(Array(viewModel.newSteps.enumerated()), id: \.offset) { index, _ in
+            ForEach(Array(viewModel.newSteps.enumerated()), id: \.element.id) { index, field in
                 HStack(alignment: .top, spacing: 10) {
                     Text("\(index + 1)")
                         .font(.system(size: 12, weight: .bold, design: .rounded))
@@ -363,13 +363,20 @@ struct CommunityCreatePostView: View {
                         )
                         .padding(.top, 2)
 
-                    TextField("Describe this step...", text: $viewModel.newSteps[index], axis: .vertical)
+                    TextField("Describe this step...", text: Binding(
+                        get: { viewModel.newSteps.first(where: { $0.id == field.id })?.value ?? "" },
+                        set: { newValue in
+                            if let i = viewModel.newSteps.firstIndex(where: { $0.id == field.id }) {
+                                viewModel.newSteps[i].value = newValue
+                            }
+                        }
+                    ), axis: .vertical)
                         .font(.system(size: 14))
                         .lineLimit(1...5)
 
                     if viewModel.newSteps.count > 1 {
                         Button {
-                            viewModel.removeStepField(at: index)
+                            viewModel.removeStepField(id: field.id)
                         } label: {
                             Image(systemName: "minus.circle")
                                 .font(.system(size: 16))
