@@ -220,6 +220,17 @@ final class CommunityService {
             .value
     }
 
+    func fetchDisplayNames(userIds: Set<UUID>) async throws -> [UUID: String] {
+        guard !userIds.isEmpty else { return [:] }
+        let rows: [UserIdName] = try await supabase
+            .from("users")
+            .select("id, display_name")
+            .in("id", values: userIds.map(\.uuidString))
+            .execute()
+            .value
+        return Dictionary(uniqueKeysWithValues: rows.map { ($0.id, $0.displayName) })
+    }
+
     // MARK: - Image Upload
 
     func uploadImage(data: Data, userId: UUID) async throws -> String {
@@ -322,4 +333,14 @@ private struct ReportPayload: Encodable {
 
 private struct CommunityLike: Codable {
     let id: UUID
+}
+
+struct UserIdName: Codable {
+    let id: UUID
+    let displayName: String
+
+    enum CodingKeys: String, CodingKey {
+        case id
+        case displayName = "display_name"
+    }
 }

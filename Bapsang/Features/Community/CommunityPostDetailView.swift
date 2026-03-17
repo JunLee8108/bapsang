@@ -143,7 +143,7 @@ struct CommunityPostDetailView: View {
                 .foregroundStyle(.orange.opacity(0.7))
 
             VStack(alignment: .leading, spacing: 2) {
-                Text("Chef")
+                Text(viewModel.displayName(for: post.userId))
                     .font(.system(size: 16, weight: .semibold, design: .rounded))
 
                 Text(post.timeAgo)
@@ -360,7 +360,7 @@ struct CommunityPostDetailView: View {
                     .font(.system(size: 16))
                     .foregroundStyle(.orange.opacity(0.6))
 
-                Text("Chef")
+                Text(viewModel.displayName(for: comment.userId))
                     .font(.system(size: 13, weight: .semibold, design: .rounded))
 
                 Spacer()
