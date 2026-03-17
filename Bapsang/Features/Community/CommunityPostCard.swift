@@ -47,6 +47,36 @@ struct CommunityPostCard: View {
                 .font(.system(size: 16, weight: .bold, design: .rounded))
                 .lineLimit(2)
 
+            // Image
+            if let imageUrl = post.imageUrl, let url = URL(string: imageUrl) {
+                AsyncImage(url: url) { phase in
+                    switch phase {
+                    case .success(let image):
+                        image
+                            .resizable()
+                            .scaledToFill()
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 180)
+                            .clipped()
+                            .clipShape(RoundedRectangle(cornerRadius: 12))
+                    case .failure:
+                        RoundedRectangle(cornerRadius: 12)
+                            .fill(.gray.opacity(0.15))
+                            .frame(height: 180)
+                            .overlay {
+                                Image(systemName: "photo")
+                                    .font(.system(size: 30))
+                                    .foregroundStyle(.tertiary)
+                            }
+                    default:
+                        RoundedRectangle(cornerRadius: 12)
+                            .fill(.gray.opacity(0.1))
+                            .frame(height: 180)
+                            .overlay { ProgressView() }
+                    }
+                }
+            }
+
             // Description
             if let description = post.description, !description.isEmpty {
                 Text(description)

@@ -21,6 +21,36 @@ struct CommunityPostDetailView: View {
         ZStack(alignment: .bottom) {
             ScrollView {
                 VStack(spacing: 24) {
+                    // Recipe Image
+                    if let imageUrl = post.imageUrl, let url = URL(string: imageUrl) {
+                        AsyncImage(url: url) { phase in
+                            switch phase {
+                            case .success(let image):
+                                image
+                                    .resizable()
+                                    .scaledToFill()
+                                    .frame(maxWidth: .infinity)
+                                    .frame(height: 260)
+                                    .clipped()
+                                    .clipShape(RoundedRectangle(cornerRadius: 16))
+                            case .failure:
+                                RoundedRectangle(cornerRadius: 16)
+                                    .fill(.gray.opacity(0.15))
+                                    .frame(height: 260)
+                                    .overlay {
+                                        Image(systemName: "photo")
+                                            .font(.system(size: 40))
+                                            .foregroundStyle(.tertiary)
+                                    }
+                            default:
+                                RoundedRectangle(cornerRadius: 16)
+                                    .fill(.gray.opacity(0.1))
+                                    .frame(height: 260)
+                                    .overlay { ProgressView() }
+                            }
+                        }
+                    }
+
                     authorSection
                     titleSection
                     metaBar
