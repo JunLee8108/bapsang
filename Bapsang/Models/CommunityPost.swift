@@ -21,9 +21,6 @@ struct CommunityPost: Codable, Identifiable {
     let isHidden: Bool
     let createdAt: Date?
 
-    // Joined data (not always present)
-    var userProfile: UserProfile?
-
     enum CodingKeys: String, CodingKey {
         case id
         case userId = "user_id"
@@ -39,7 +36,6 @@ struct CommunityPost: Codable, Identifiable {
         case commentsCount = "comments_count"
         case isHidden = "is_hidden"
         case createdAt = "created_at"
-        case userProfile = "user_profiles"
     }
 
     var difficultyLabel: String {
