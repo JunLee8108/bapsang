@@ -52,11 +52,13 @@ struct CommunityPostCard: View {
                 AsyncImage(url: url) { phase in
                     switch phase {
                     case .success(let image):
-                        image
-                            .resizable()
-                            .scaledToFill()
-                            .frame(maxWidth: .infinity)
+                        Color.clear
                             .frame(height: 200)
+                            .overlay {
+                                image
+                                    .resizable()
+                                    .scaledToFill()
+                            }
                             .clipped()
                             .contentShape(Rectangle())
                             .clipShape(RoundedRectangle(cornerRadius: 12))
