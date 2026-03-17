@@ -61,13 +61,7 @@ private struct RecipeRowContent: View {
 
     var body: some View {
         HStack(spacing: 14) {
-                Text(recipe.emoji)
-                    .font(.system(size: 32))
-                    .frame(width: 48, height: 48)
-                    .background(
-                        RoundedRectangle(cornerRadius: 12)
-                            .fill(.ultraThinMaterial)
-                    )
+                RecipeImageView(recipe: recipe, size: 48, cornerRadius: 12)
 
                 VStack(alignment: .leading, spacing: 4) {
                     HStack(spacing: 6) {
