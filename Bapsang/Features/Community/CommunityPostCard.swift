@@ -54,10 +54,8 @@ struct CommunityPostCard: View {
                     case .success(let image):
                         image
                             .resizable()
-                            .scaledToFill()
+                            .scaledToFit()
                             .frame(maxWidth: .infinity)
-                            .frame(height: 180)
-                            .clipped()
                             .clipShape(RoundedRectangle(cornerRadius: 12))
                     case .failure:
                         RoundedRectangle(cornerRadius: 12)
