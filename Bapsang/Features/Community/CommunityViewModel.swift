@@ -22,6 +22,15 @@ final class CommunityViewModel {
     var isLoading = false
     var errorMessage: String?
 
+    // Pagination
+    var isFetchingMore = false
+    var hasMorePages = true
+    private var lastCursor: PostCursor?
+
+    // First-page cache for stale-while-revalidate
+    private var cachedFirstPage: [CommunityPost]?
+    private var cachedSortBy: PostSort?
+
     // Detail view state
     var comments: [CommunityComment] = []
     var isLoadingComments = false
@@ -60,22 +69,88 @@ final class CommunityViewModel {
 
     // MARK: - Fetch Posts
 
+    /// Initial load — shows cache immediately, then refreshes from network.
     func fetchPosts() async {
-        isLoading = true
-        defer { isLoading = false }
+        // Show cached first page instantly if available for the same sort
+        if let cached = cachedFirstPage, cachedSortBy == sortBy, posts.isEmpty {
+            posts = cached
+        }
+
+        isLoading = posts.isEmpty
+        hasMorePages = true
+        lastCursor = nil
 
         do {
-            posts = try await service.fetchPosts(sortBy: sortBy)
-            let userIds = Set(posts.map(\.userId))
-            let names = try await service.fetchDisplayNames(userIds: userIds)
-            authorNames.merge(names) { _, new in new }
+            let newPosts = try await service.fetchPosts(sortBy: sortBy)
+            posts = newPosts
+            hasMorePages = newPosts.count >= CommunityService.pageSize
+            lastCursor = newPosts.last.map { PostCursor(from: $0) }
+
+            // Update first-page cache
+            cachedFirstPage = newPosts
+            cachedSortBy = sortBy
+
+            // Batch fetch display names
+            let userIds = Set(newPosts.map(\.userId))
+            let newIds = userIds.subtracting(authorNames.keys)
+            if !newIds.isEmpty {
+                let names = try await service.fetchDisplayNames(userIds: newIds)
+                authorNames.merge(names) { _, new in new }
+            }
         } catch {
-            errorMessage = "게시물을 불러올 수 없습니다."
+            if posts.isEmpty {
+                errorMessage = "게시물을 불러올 수 없습니다."
+            }
         }
+
+        isLoading = false
+    }
+
+    /// Load next page for infinite scroll.
+    func fetchMorePosts() async {
+        guard !isFetchingMore, hasMorePages, let cursor = lastCursor else { return }
+        isFetchingMore = true
+        defer { isFetchingMore = false }
+
+        do {
+            let newPosts = try await service.fetchPosts(sortBy: sortBy, cursor: cursor)
+            guard !newPosts.isEmpty else {
+                hasMorePages = false
+                return
+            }
+
+            // Deduplicate
+            let existingIds = Set(posts.map(\.id))
+            let unique = newPosts.filter { !existingIds.contains($0.id) }
+            posts.append(contentsOf: unique)
+
+            hasMorePages = newPosts.count >= CommunityService.pageSize
+            lastCursor = newPosts.last.map { PostCursor(from: $0) }
+
+            // Batch fetch display names for new authors
+            let newUserIds = Set(unique.map(\.userId)).subtracting(authorNames.keys)
+            if !newUserIds.isEmpty {
+                let names = try await service.fetchDisplayNames(userIds: newUserIds)
+                authorNames.merge(names) { _, new in new }
+            }
+        } catch {
+            // Silently fail — user can scroll again to retry
+        }
+    }
+
+    /// Pull-to-refresh — clears cache and reloads from scratch.
+    func refreshPosts() async {
+        cachedFirstPage = nil
+        cachedSortBy = nil
+        likesCountDelta = [:]
+        commentsCountDelta = [:]
+        await fetchPosts()
     }
 
     func changeSortAndRefresh(_ sort: PostSort) async {
         sortBy = sort
+        posts = []      // Clear immediately for sort change
+        likedPostIds = []
         await fetchPosts()
     }
 
@@ -108,6 +183,14 @@ final class CommunityViewModel {
             if liked {
                 likedPostIds.insert(postId)
             }
+        } catch {}
+    }
+
+    /// Batch check liked status for a set of posts
+    func batchCheckLikedStatus(postIds: [UUID], userId: UUID) async {
+        do {
+            let liked = try await service.fetchLikedPostIds(postIds: postIds, userId: userId)
+            likedPostIds.formUnion(liked)
         } catch {}
     }
 
