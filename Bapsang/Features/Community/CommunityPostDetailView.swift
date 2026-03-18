@@ -403,8 +403,10 @@ struct CommunityPostDetailView: View {
                         Task { await viewModel.deleteComment(commentId: comment.id, postId: post.id) }
                     } label: {
                         Image(systemName: "xmark")
-                            .font(.system(size: 10, weight: .semibold))
+                            .font(.system(size: 12, weight: .semibold))
                             .foregroundStyle(.tertiary)
+                            .frame(width: 36, height: 36)
+                            .contentShape(Rectangle())
                     }
                 } else {
                     Menu {
@@ -416,8 +418,10 @@ struct CommunityPostDetailView: View {
                         }
                     } label: {
                         Image(systemName: "ellipsis")
-                            .font(.system(size: 10, weight: .semibold))
+                            .font(.system(size: 12, weight: .semibold))
                             .foregroundStyle(.tertiary)
+                            .frame(width: 36, height: 36)
+                            .contentShape(Rectangle())
                     }
                 }
             }
