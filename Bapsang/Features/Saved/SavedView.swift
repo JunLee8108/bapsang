@@ -44,8 +44,7 @@ struct SavedView: View {
         .task {
             guard let userId = authService.currentUserId else { return }
             await viewModel.loadSavedIds(userId: userId)
-            await viewModel.fetchSaved(userId: userId)
-            // Sync author names to communityViewModel for detail view
+            await viewModel.fetchSavedIfNeeded(userId: userId)
             communityViewModel.authorNames.merge(viewModel.authorNames) { _, new in new }
         }
     }
@@ -117,7 +116,7 @@ struct SavedView: View {
                     viewModel.selectedTab = tab
                     guard let userId = authService.currentUserId else { return }
                     Task {
-                        await viewModel.fetchSaved(userId: userId)
+                        await viewModel.fetchSavedIfNeeded(userId: userId)
                         communityViewModel.authorNames.merge(viewModel.authorNames) { _, new in new }
                     }
                 } label: {
