@@ -38,8 +38,8 @@ final class SavedViewModel {
 
     private let service = SavedService()
 
-    private nonisolated(unsafe) var savedItemObserver: Any?
-    private nonisolated(unsafe) var displayNameObserver: Any?
+    private nonisolated var savedItemObserver: Any?
+    private nonisolated var displayNameObserver: Any?
 
     init() {
         savedItemObserver = NotificationCenter.default.addObserver(

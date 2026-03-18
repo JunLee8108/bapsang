@@ -55,7 +55,7 @@ final class CommunityViewModel {
 
     // Author display names cache
     var authorNames: [UUID: String] = [:]
-    private nonisolated(unsafe) var displayNameObserver: Any?
+    private nonisolated var displayNameObserver: Any?
 
     init() {
         displayNameObserver = NotificationCenter.default.addObserver(
