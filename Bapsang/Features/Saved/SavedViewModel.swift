@@ -17,7 +17,7 @@ final class SavedViewModel {
     // MARK: - State
 
     var selectedTab: SavedSourceType = .default
-    var isLoading = false
+    var isLoading = true
     var errorMessage: String?
 
     // Default recipes
