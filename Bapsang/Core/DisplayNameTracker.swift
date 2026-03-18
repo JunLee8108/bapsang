@@ -22,3 +22,12 @@ enum SavedItemTracker {
         version += 1
     }
 }
+
+@MainActor
+enum PostEngagementTracker {
+    private(set) static var version: Int = 0
+
+    static func notifyChange() {
+        version += 1
+    }
+}
