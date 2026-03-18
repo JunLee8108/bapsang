@@ -11,6 +11,7 @@ struct CommunityPostDetailView: View {
     @Environment(AuthService.self) private var authService
     @Environment(\.dismiss) private var dismiss
     @State private var showDeleteConfirm = false
+    @State private var commentToDelete: UUID?
     @State private var showEditSheet = false
     @FocusState private var isCommentFocused: Bool
     @State private var localLikesCount: Int
@@ -142,6 +143,19 @@ struct CommunityPostDetailView: View {
                 }
             }
             Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("This action cannot be undone.")
+        }
+        .alert("Delete this comment?", isPresented: .init(
+            get: { commentToDelete != nil },
+            set: { if !$0 { commentToDelete = nil } }
+        )) {
+            Button("Delete", role: .destructive) {
+                if let id = commentToDelete {
+                    Task { await viewModel.deleteComment(commentId: id, postId: post.id) }
+                }
+            }
+            Button("Cancel", role: .cancel) { commentToDelete = nil }
         } message: {
             Text("This action cannot be undone.")
         }
@@ -400,7 +414,7 @@ struct CommunityPostDetailView: View {
 
                 if comment.userId == authService.currentUserId {
                     Button {
-                        Task { await viewModel.deleteComment(commentId: comment.id, postId: post.id) }
+                        commentToDelete = comment.id
                     } label: {
                         Image(systemName: "xmark")
                             .font(.system(size: 12, weight: .semibold))
