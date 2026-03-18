@@ -27,6 +27,24 @@ final class SavedViewModel {
     // Community posts
     var savedCommunityPosts: [CommunityPost] = []
     var authorNames: [UUID: String] = [:]
+    private var displayNameObserver: Any?
+
+    init() {
+        displayNameObserver = NotificationCenter.default.addObserver(
+            forName: .displayNameDidChange,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            self?.authorNames = [:]
+            self?.hasFetchedCommunity = false
+        }
+    }
+
+    deinit {
+        if let observer = displayNameObserver {
+            NotificationCenter.default.removeObserver(observer)
+        }
+    }
 
     // Saved IDs for quick lookup (used by bookmark buttons)
     var savedDefaultIds: Set<UUID> = []
@@ -105,11 +123,11 @@ final class SavedViewModel {
                 savedCommunityIds = ids
                 let posts = try await service.fetchCommunityPosts(ids: ids)
                 savedCommunityPosts = posts
+                authorNames = [:]
                 let userIds = Set(posts.map(\.userId))
-                let newIds = userIds.subtracting(authorNames.keys)
-                if !newIds.isEmpty {
-                    let names = try await service.fetchDisplayNames(userIds: newIds)
-                    authorNames.merge(names) { _, new in new }
+                if !userIds.isEmpty {
+                    let names = try await service.fetchDisplayNames(userIds: userIds)
+                    authorNames = names
                 }
                 hasFetchedCommunity = true
             } catch {
