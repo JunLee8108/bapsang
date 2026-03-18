@@ -84,6 +84,9 @@ struct CommunityView: View {
                 await viewModel.batchCheckLikedStatus(postIds: postIds, userId: userId)
             }
         }
+        .task {
+            await viewModel.observeDisplayNameChanges()
+        }
     }
 
     // MARK: - Background

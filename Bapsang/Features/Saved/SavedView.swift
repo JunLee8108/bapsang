@@ -47,6 +47,12 @@ struct SavedView: View {
             await viewModel.fetchSavedIfNeeded(userId: userId)
             communityViewModel.authorNames.merge(viewModel.authorNames) { _, new in new }
         }
+        .task {
+            await viewModel.observeSavedItemChanges()
+        }
+        .task {
+            await viewModel.observeDisplayNameChanges()
+        }
     }
 
     // MARK: - Background
