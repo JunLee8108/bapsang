@@ -44,12 +44,28 @@ final class SavedViewModel {
             object: nil,
             queue: .main
         ) { [weak self] notification in
-            guard let sourceType = notification.userInfo?["sourceType"] as? String else { return }
+            guard let sourceType = notification.userInfo?["sourceType"] as? String,
+                  let sourceId = notification.userInfo?["sourceId"] as? UUID,
+                  let isSaved = notification.userInfo?["isSaved"] as? Bool
+            else { return }
             Task { @MainActor [weak self] in
-                if sourceType == "default" {
-                    self?.hasFetchedDefault = false
-                } else if sourceType == "community" {
-                    self?.hasFetchedCommunity = false
+                guard let self else { return }
+                if isSaved {
+                    // New save — mark stale so next visit re-fetches full data
+                    if sourceType == "default" {
+                        self.hasFetchedDefault = false
+                    } else if sourceType == "community" {
+                        self.hasFetchedCommunity = false
+                    }
+                } else {
+                    // Unsave — remove from local arrays immediately
+                    if sourceType == "default" {
+                        self.savedDefaultIds.remove(sourceId)
+                        self.savedDefaultRecipes.removeAll { $0.id == sourceId }
+                    } else if sourceType == "community" {
+                        self.savedCommunityIds.remove(sourceId)
+                        self.savedCommunityPosts.removeAll { $0.id == sourceId }
+                    }
                 }
             }
         }
