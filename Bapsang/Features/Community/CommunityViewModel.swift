@@ -55,7 +55,7 @@ final class CommunityViewModel {
 
     // Author display names cache
     var authorNames: [UUID: String] = [:]
-    private var displayNameObserver: Any?
+    private nonisolated(unsafe) var displayNameObserver: Any?
 
     init() {
         displayNameObserver = NotificationCenter.default.addObserver(
@@ -63,7 +63,9 @@ final class CommunityViewModel {
             object: nil,
             queue: .main
         ) { [weak self] _ in
-            self?.authorNames = [:]
+            Task { @MainActor [weak self] in
+                self?.authorNames = [:]
+            }
         }
     }
 

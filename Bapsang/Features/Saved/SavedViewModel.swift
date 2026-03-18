@@ -27,24 +27,6 @@ final class SavedViewModel {
     // Community posts
     var savedCommunityPosts: [CommunityPost] = []
     var authorNames: [UUID: String] = [:]
-    private var displayNameObserver: Any?
-
-    init() {
-        displayNameObserver = NotificationCenter.default.addObserver(
-            forName: .displayNameDidChange,
-            object: nil,
-            queue: .main
-        ) { [weak self] _ in
-            self?.authorNames = [:]
-            self?.hasFetchedCommunity = false
-        }
-    }
-
-    deinit {
-        if let observer = displayNameObserver {
-            NotificationCenter.default.removeObserver(observer)
-        }
-    }
 
     // Saved IDs for quick lookup (used by bookmark buttons)
     var savedDefaultIds: Set<UUID> = []
@@ -56,8 +38,11 @@ final class SavedViewModel {
 
     private let service = SavedService()
 
+    private nonisolated(unsafe) var savedItemObserver: Any?
+    private nonisolated(unsafe) var displayNameObserver: Any?
+
     init() {
-        NotificationCenter.default.addObserver(
+        savedItemObserver = NotificationCenter.default.addObserver(
             forName: .savedItemChanged,
             object: nil,
             queue: .main
@@ -86,6 +71,26 @@ final class SavedViewModel {
                     }
                 }
             }
+        }
+
+        displayNameObserver = NotificationCenter.default.addObserver(
+            forName: .displayNameDidChange,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            Task { @MainActor [weak self] in
+                self?.authorNames = [:]
+                self?.hasFetchedCommunity = false
+            }
+        }
+    }
+
+    deinit {
+        if let observer = savedItemObserver {
+            NotificationCenter.default.removeObserver(observer)
+        }
+        if let observer = displayNameObserver {
+            NotificationCenter.default.removeObserver(observer)
         }
     }
 
