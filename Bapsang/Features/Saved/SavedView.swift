@@ -150,23 +150,31 @@ struct SavedView: View {
 
     @ViewBuilder
     private var contentSection: some View {
-        if viewModel.isLoading {
-            VStack(spacing: 12) {
-                ProgressView()
-                Text("Loading...")
-                    .font(.system(size: 14))
-                    .foregroundStyle(.secondary)
-            }
-            .frame(maxWidth: .infinity)
-            .padding(.top, 60)
-        } else {
-            switch viewModel.selectedTab {
-            case .default:
+        switch viewModel.selectedTab {
+        case .default:
+            if viewModel.isLoadingDefault {
+                loadingIndicator
+            } else {
                 defaultRecipesSection
-            case .community:
+            }
+        case .community:
+            if viewModel.isLoadingCommunity {
+                loadingIndicator
+            } else {
                 communityPostsSection
             }
         }
+    }
+
+    private var loadingIndicator: some View {
+        VStack(spacing: 12) {
+            ProgressView()
+            Text("Loading...")
+                .font(.system(size: 14))
+                .foregroundStyle(.secondary)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.top, 60)
     }
 
     // MARK: - Default Recipes
