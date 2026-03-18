@@ -55,6 +55,7 @@ final class CommunityViewModel {
 
     // Author display names cache
     var authorNames: [UUID: String] = [:]
+    @ObservationIgnored
     private nonisolated var displayNameObserver: Any?
 
     init() {

@@ -38,7 +38,9 @@ final class SavedViewModel {
 
     private let service = SavedService()
 
+    @ObservationIgnored
     private nonisolated var savedItemObserver: Any?
+    @ObservationIgnored
     private nonisolated var displayNameObserver: Any?
 
     init() {
