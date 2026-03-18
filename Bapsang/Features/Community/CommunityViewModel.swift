@@ -11,6 +11,20 @@ struct IdentifiableField: Identifiable {
     var value: String
 }
 
+enum PostValidationError: Equatable {
+    case title
+    case ingredients
+    case steps
+
+    var message: String {
+        switch self {
+        case .title:       return "제목을 입력해주세요."
+        case .ingredients: return "재료를 하나 이상 입력해주세요."
+        case .steps:       return "조리 단계를 하나 이상 입력해주세요."
+        }
+    }
+}
+
 @Observable
 @MainActor
 final class CommunityViewModel {
@@ -52,6 +66,7 @@ final class CommunityViewModel {
     var newServingSize = 2
     var newImageData: Data?
     var isSubmitting = false
+    var validationError: PostValidationError?
 
     // Edit post state
     var editingPost: CommunityPost?
@@ -254,9 +269,10 @@ final class CommunityViewModel {
     // MARK: - Create Post
 
     func createPost(userId: UUID) async -> Bool {
+        validationError = nil
         let title = newTitle.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !title.isEmpty else {
-            errorMessage = "제목을 입력해주세요."
+            validationError = .title
             return false
         }
 
@@ -268,11 +284,11 @@ final class CommunityViewModel {
             .filter { !$0.isEmpty }
 
         guard !ingredients.isEmpty else {
-            errorMessage = "재료를 하나 이상 입력해주세요."
+            validationError = .ingredients
             return false
         }
         guard !steps.isEmpty else {
-            errorMessage = "조리 단계를 하나 이상 입력해주세요."
+            validationError = .steps
             return false
         }
 
@@ -329,9 +345,10 @@ final class CommunityViewModel {
     func updatePost(userId: UUID) async -> Bool {
         guard let editingPost else { return false }
 
+        validationError = nil
         let title = newTitle.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !title.isEmpty else {
-            errorMessage = "제목을 입력해주세요."
+            validationError = .title
             return false
         }
 
@@ -343,11 +360,11 @@ final class CommunityViewModel {
             .filter { !$0.isEmpty }
 
         guard !ingredients.isEmpty else {
-            errorMessage = "재료를 하나 이상 입력해주세요."
+            validationError = .ingredients
             return false
         }
         guard !steps.isEmpty else {
-            errorMessage = "조리 단계를 하나 이상 입력해주세요."
+            validationError = .steps
             return false
         }
 
@@ -444,6 +461,7 @@ final class CommunityViewModel {
         newDifficulty = "easy"
         newServingSize = 2
         newImageData = nil
+        validationError = nil
     }
 
     func addIngredientField() {
