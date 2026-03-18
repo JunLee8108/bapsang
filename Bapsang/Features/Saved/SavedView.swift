@@ -214,6 +214,9 @@ struct SavedView: View {
                                 viewModel: communityViewModel
                             )
                             .environment(authService)
+                            .onDisappear {
+                                viewModel.applyLikeDeltas(from: communityViewModel)
+                            }
                         } label: {
                             SavedCommunityPostCard(
                                 post: post,
