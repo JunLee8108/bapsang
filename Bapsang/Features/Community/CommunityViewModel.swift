@@ -55,25 +55,6 @@ final class CommunityViewModel {
 
     // Author display names cache
     var authorNames: [UUID: String] = [:]
-    private nonisolated var displayNameObserver: Any?
-
-    init() {
-        displayNameObserver = NotificationCenter.default.addObserver(
-            forName: .displayNameDidChange,
-            object: nil,
-            queue: .main
-        ) { [weak self] _ in
-            Task { @MainActor [weak self] in
-                self?.authorNames = [:]
-            }
-        }
-    }
-
-    deinit {
-        if let observer = displayNameObserver {
-            NotificationCenter.default.removeObserver(observer)
-        }
-    }
 
     // Create post state
     var newTitle = ""
@@ -500,5 +481,15 @@ final class CommunityViewModel {
     func removeStepField(id: UUID) {
         guard newSteps.count > 1 else { return }
         newSteps.removeAll { $0.id == id }
+    }
+
+    // MARK: - Notification Observation
+
+    /// Observe display name changes via async sequence.
+    /// Call from View's `.task` — automatically cancelled when the view disappears.
+    func observeDisplayNameChanges() async {
+        for await _ in NotificationCenter.default.notifications(named: .displayNameDidChange) {
+            authorNames = [:]
+        }
     }
 }

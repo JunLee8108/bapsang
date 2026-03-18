@@ -38,62 +38,6 @@ final class SavedViewModel {
 
     private let service = SavedService()
 
-    private nonisolated var savedItemObserver: Any?
-    private nonisolated var displayNameObserver: Any?
-
-    init() {
-        savedItemObserver = NotificationCenter.default.addObserver(
-            forName: .savedItemChanged,
-            object: nil,
-            queue: .main
-        ) { [weak self] notification in
-            guard let sourceType = notification.userInfo?["sourceType"] as? String,
-                  let sourceId = notification.userInfo?["sourceId"] as? UUID,
-                  let isSaved = notification.userInfo?["isSaved"] as? Bool
-            else { return }
-            Task { @MainActor [weak self] in
-                guard let self else { return }
-                if isSaved {
-                    // New save — mark stale so next visit re-fetches full data
-                    if sourceType == "default" {
-                        self.hasFetchedDefault = false
-                    } else if sourceType == "community" {
-                        self.hasFetchedCommunity = false
-                    }
-                } else {
-                    // Unsave — remove from local arrays immediately
-                    if sourceType == "default" {
-                        self.savedDefaultIds.remove(sourceId)
-                        self.savedDefaultRecipes.removeAll { $0.id == sourceId }
-                    } else if sourceType == "community" {
-                        self.savedCommunityIds.remove(sourceId)
-                        self.savedCommunityPosts.removeAll { $0.id == sourceId }
-                    }
-                }
-            }
-        }
-
-        displayNameObserver = NotificationCenter.default.addObserver(
-            forName: .displayNameDidChange,
-            object: nil,
-            queue: .main
-        ) { [weak self] _ in
-            Task { @MainActor [weak self] in
-                self?.authorNames = [:]
-                self?.hasFetchedCommunity = false
-            }
-        }
-    }
-
-    deinit {
-        if let observer = savedItemObserver {
-            NotificationCenter.default.removeObserver(observer)
-        }
-        if let observer = displayNameObserver {
-            NotificationCenter.default.removeObserver(observer)
-        }
-    }
-
     // MARK: - Fetch
 
     func fetchSavedIfNeeded(userId: UUID) async {
@@ -218,5 +162,43 @@ final class SavedViewModel {
 
     func displayName(for userId: UUID) -> String {
         authorNames[userId] ?? "Chef"
+    }
+
+    // MARK: - Notification Observation
+
+    /// Observe saved item changes via async sequence.
+    /// Call from View's `.task` — automatically cancelled when the view disappears.
+    func observeSavedItemChanges() async {
+        for await notification in NotificationCenter.default.notifications(named: .savedItemChanged) {
+            guard let sourceType = notification.userInfo?["sourceType"] as? String,
+                  let sourceId = notification.userInfo?["sourceId"] as? UUID,
+                  let isSaved = notification.userInfo?["isSaved"] as? Bool
+            else { continue }
+
+            if isSaved {
+                if sourceType == "default" {
+                    hasFetchedDefault = false
+                } else if sourceType == "community" {
+                    hasFetchedCommunity = false
+                }
+            } else {
+                if sourceType == "default" {
+                    savedDefaultIds.remove(sourceId)
+                    savedDefaultRecipes.removeAll { $0.id == sourceId }
+                } else if sourceType == "community" {
+                    savedCommunityIds.remove(sourceId)
+                    savedCommunityPosts.removeAll { $0.id == sourceId }
+                }
+            }
+        }
+    }
+
+    /// Observe display name changes via async sequence.
+    /// Call from View's `.task` — automatically cancelled when the view disappears.
+    func observeDisplayNameChanges() async {
+        for await _ in NotificationCenter.default.notifications(named: .displayNameDidChange) {
+            authorNames = [:]
+            hasFetchedCommunity = false
+        }
     }
 }
