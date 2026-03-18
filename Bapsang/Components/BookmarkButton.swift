@@ -52,7 +52,11 @@ struct BookmarkButton: View {
             NotificationCenter.default.post(
                 name: .savedItemChanged,
                 object: nil,
-                userInfo: ["sourceType": sourceType.rawValue, "sourceId": sourceId]
+                userInfo: [
+                    "sourceType": sourceType.rawValue,
+                    "sourceId": sourceId,
+                    "isSaved": !wasSaved
+                ]
             )
         } catch {
             isSaved = wasSaved // Revert on error
