@@ -172,6 +172,7 @@ final class CommunityService {
             .from("community_comments")
             .select()
             .eq("post_id", value: postId)
+            .eq("is_hidden", value: false)
             .order("created_at", ascending: true)
             .execute()
             .value
@@ -204,6 +205,15 @@ final class CommunityService {
 
         try await supabase
             .from("community_reports")
+            .insert(payload)
+            .execute()
+    }
+
+    func reportComment(commentId: UUID, reporterId: UUID, reason: String) async throws {
+        let payload = CommentReportPayload(commentId: commentId, reporterId: reporterId, reason: reason)
+
+        try await supabase
+            .from("community_comment_reports")
             .insert(payload)
             .execute()
     }
@@ -326,6 +336,18 @@ private struct ReportPayload: Encodable {
 
     enum CodingKeys: String, CodingKey {
         case postId = "post_id"
+        case reporterId = "reporter_id"
+        case reason
+    }
+}
+
+private struct CommentReportPayload: Encodable {
+    let commentId: UUID
+    let reporterId: UUID
+    let reason: String
+
+    enum CodingKeys: String, CodingKey {
+        case commentId = "comment_id"
         case reporterId = "reporter_id"
         case reason
     }

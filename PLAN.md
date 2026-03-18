@@ -278,6 +278,8 @@ public.users  ← 프로필 통합 (display_name, badges, stats, spice, dietary,
     ├──▶ community_posts (1:N)    — 커뮤니티 게시물
     ├──▶ community_likes (1:N)    — 좋아요
     ├──▶ community_comments (1:N) — 댓글
+    ├──▶ community_reports (1:N) — 게시물 신고
+    ├──▶ community_comment_reports (1:N) — 댓글 신고
     │
     └── recipe_categories (read-only, shared)
 ```

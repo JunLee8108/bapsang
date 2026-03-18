@@ -153,6 +153,11 @@ struct CommunityPostDetailView: View {
                 .presentationDetents([.medium])
                 .presentationDragIndicator(.visible)
         }
+        .sheet(isPresented: $viewModel.showCommentReportSheet) {
+            commentReportSheet
+                .presentationDetents([.medium])
+                .presentationDragIndicator(.visible)
+        }
         .task {
             await viewModel.fetchComments(postId: post.id)
             if let userId = authService.currentUserId {
@@ -401,6 +406,19 @@ struct CommunityPostDetailView: View {
                             .font(.system(size: 10, weight: .semibold))
                             .foregroundStyle(.tertiary)
                     }
+                } else {
+                    Menu {
+                        Button {
+                            viewModel.reportingCommentId = comment.id
+                            viewModel.showCommentReportSheet = true
+                        } label: {
+                            Label("Report", systemImage: "exclamationmark.triangle")
+                        }
+                    } label: {
+                        Image(systemName: "ellipsis")
+                            .font(.system(size: 10, weight: .semibold))
+                            .foregroundStyle(.tertiary)
+                    }
                 }
             }
 
@@ -495,6 +513,58 @@ struct CommunityPostDetailView: View {
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") { viewModel.showReportSheet = false }
+                }
+            }
+        }
+    }
+
+    // MARK: - Comment Report Sheet
+
+    private var commentReportSheet: some View {
+        NavigationStack {
+            VStack(spacing: 20) {
+                Image(systemName: "exclamationmark.triangle.fill")
+                    .font(.system(size: 40))
+                    .foregroundStyle(.orange)
+
+                Text("Why are you reporting this comment?")
+                    .font(.system(size: 16, weight: .semibold))
+
+                TextEditor(text: $viewModel.commentReportReason)
+                    .font(.system(size: 14))
+                    .frame(height: 120)
+                    .padding(8)
+                    .background {
+                        RoundedRectangle(cornerRadius: 12)
+                            .stroke(Color(.systemGray4), lineWidth: 0.5)
+                    }
+                    .padding(.horizontal)
+
+                Button {
+                    guard let userId = authService.currentUserId else { return }
+                    Task { await viewModel.reportComment(reporterId: userId) }
+                } label: {
+                    Text("Submit Report")
+                        .font(.system(size: 15, weight: .semibold))
+                        .foregroundStyle(.white)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 14)
+                        .background(
+                            RoundedRectangle(cornerRadius: 14)
+                                .fill(.orange)
+                        )
+                }
+                .disabled(viewModel.commentReportReason.trimmingCharacters(in: .whitespaces).isEmpty)
+                .padding(.horizontal)
+
+                Spacer()
+            }
+            .padding(.top, 24)
+            .navigationTitle("Report Comment")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") { viewModel.showCommentReportSheet = false }
                 }
             }
         }
