@@ -319,100 +319,57 @@ private struct SavedCommunityPostCard: View {
     let authorName: String
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            // Author + time
-            HStack(spacing: 8) {
-                Image(systemName: "person.circle.fill")
-                    .font(.system(size: 24))
-                    .foregroundStyle(.orange.opacity(0.7))
-
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(authorName)
-                        .font(.system(size: 13, weight: .semibold, design: .rounded))
-                    Text(post.timeAgo)
-                        .font(.system(size: 10))
-                        .foregroundStyle(.tertiary)
-                }
-
-                Spacer()
-
-                if let difficulty = post.difficulty {
-                    Text(post.difficultyLabel)
-                        .font(.system(size: 10, weight: .semibold))
-                        .foregroundStyle(difficultyColor(difficulty))
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 4)
-                        .background(
-                            Capsule().fill(difficultyColor(difficulty).opacity(0.12))
-                        )
-                }
-            }
-
-            // Title
-            Text(post.title)
-                .font(.system(size: 15, weight: .bold, design: .rounded))
-                .lineLimit(2)
-
-            // Image
+        HStack(spacing: 14) {
+            // Thumbnail
             if let imageUrl = post.imageUrl, let url = URL(string: imageUrl) {
                 CachedAsyncImage(url: url) { phase in
                     switch phase {
                     case .success(let image):
                         Color.clear
-                            .frame(height: 160)
-                            .overlay {
-                                image.resizable().scaledToFill()
-                            }
+                            .overlay { image.resizable().scaledToFill() }
                             .clipped()
                             .contentShape(Rectangle())
-                            .clipShape(RoundedRectangle(cornerRadius: 12))
                     case .failure:
-                        RoundedRectangle(cornerRadius: 12)
-                            .fill(.gray.opacity(0.15))
-                            .frame(height: 160)
-                            .overlay {
-                                Image(systemName: "photo")
-                                    .font(.system(size: 30))
-                                    .foregroundStyle(.tertiary)
-                            }
+                        imagePlaceholder
                     default:
-                        RoundedRectangle(cornerRadius: 12)
-                            .fill(.gray.opacity(0.1))
-                            .frame(height: 160)
-                            .overlay { ProgressView() }
+                        ProgressView()
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
                     }
                 }
+                .frame(width: 72, height: 72)
+                .clipShape(RoundedRectangle(cornerRadius: 12))
+            } else {
+                imagePlaceholder
+                    .frame(width: 72, height: 72)
+                    .clipShape(RoundedRectangle(cornerRadius: 12))
             }
 
-            // Meta
-            HStack(spacing: 12) {
-                if let time = post.cookingTime {
-                    metaItem(icon: "clock", text: "\(time) min")
-                }
-                if let serving = post.servingSize {
-                    metaItem(icon: "person.2", text: "\(serving) servings")
-                }
+            VStack(alignment: .leading, spacing: 6) {
+                Text(post.title)
+                    .font(.system(size: 15, weight: .bold, design: .rounded))
+                    .lineLimit(1)
 
-                Spacer()
+                Text(authorName)
+                    .font(.system(size: 12))
+                    .foregroundStyle(.secondary)
 
-                HStack(spacing: 4) {
-                    Image(systemName: "heart.fill")
-                        .font(.system(size: 11))
-                        .foregroundStyle(.red.opacity(0.6))
-                    Text("\(post.likesCount)")
-                        .font(.system(size: 11, weight: .medium))
-                        .foregroundStyle(.secondary)
-                }
-
-                HStack(spacing: 4) {
-                    Image(systemName: "bubble.right")
-                        .font(.system(size: 11))
-                        .foregroundStyle(.secondary)
-                    Text("\(post.commentsCount)")
-                        .font(.system(size: 11, weight: .medium))
-                        .foregroundStyle(.secondary)
+                HStack(spacing: 12) {
+                    if let time = post.cookingTime {
+                        metaItem(icon: "clock", text: "\(time) min")
+                    }
+                    if let difficulty = post.difficulty {
+                        metaItem(icon: "chart.bar", text: post.difficultyLabel)
+                    }
+                    metaItem(icon: "heart.fill", text: "\(post.likesCount)", color: .red.opacity(0.6))
+                    metaItem(icon: "bubble.right", text: "\(post.commentsCount)")
                 }
             }
+
+            Spacer()
+
+            Image(systemName: "chevron.right")
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundStyle(.tertiary)
         }
         .padding(14)
         .background {
@@ -433,23 +390,24 @@ private struct SavedCommunityPostCard: View {
         )
     }
 
-    private func metaItem(icon: String, text: String) -> some View {
+    private var imagePlaceholder: some View {
+        RoundedRectangle(cornerRadius: 12)
+            .fill(.gray.opacity(0.15))
+            .overlay {
+                Image(systemName: "photo")
+                    .font(.system(size: 20))
+                    .foregroundStyle(.tertiary)
+            }
+    }
+
+    private func metaItem(icon: String, text: String, color: Color = .orange) -> some View {
         HStack(spacing: 4) {
             Image(systemName: icon)
                 .font(.system(size: 11))
-                .foregroundStyle(.orange)
+                .foregroundStyle(color)
             Text(text)
                 .font(.system(size: 11, weight: .medium))
                 .foregroundStyle(.secondary)
-        }
-    }
-
-    private func difficultyColor(_ difficulty: String) -> Color {
-        switch difficulty {
-        case "easy":   return .green
-        case "medium": return .orange
-        case "hard":   return .red
-        default:       return .green
         }
     }
 }
