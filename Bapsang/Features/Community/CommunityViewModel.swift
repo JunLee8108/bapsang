@@ -490,6 +490,12 @@ final class CommunityViewModel {
     func observeDisplayNameChanges() async {
         for await _ in NotificationCenter.default.notifications(named: .displayNameDidChange) {
             authorNames = [:]
+            // Re-fetch display names for currently visible posts
+            let userIds = Set(posts.map(\.userId))
+            if !userIds.isEmpty {
+                let names = try? await service.fetchDisplayNames(userIds: userIds)
+                if let names { authorNames.merge(names) { _, new in new } }
+            }
         }
     }
 }
