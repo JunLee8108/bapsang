@@ -18,9 +18,9 @@ enum PostValidationError: Equatable {
 
     var message: String {
         switch self {
-        case .title:       return "제목을 입력해주세요."
-        case .ingredients: return "재료를 하나 이상 입력해주세요."
-        case .steps:       return "조리 단계를 하나 이상 입력해주세요."
+        case .title:       return "Please enter a title."
+        case .ingredients: return "Please add at least one ingredient."
+        case .steps:       return "Please add at least one step."
         }
     }
 }
