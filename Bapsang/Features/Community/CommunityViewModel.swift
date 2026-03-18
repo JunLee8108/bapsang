@@ -47,9 +47,14 @@ final class CommunityViewModel {
     // Edit post state
     var editingPost: CommunityPost?
 
-    // Report
+    // Report (post)
     var showReportSheet = false
     var reportReason = ""
+
+    // Report (comment)
+    var showCommentReportSheet = false
+    var commentReportReason = ""
+    var reportingCommentId: UUID?
 
     private let service = CommunityService()
 
@@ -322,6 +327,20 @@ final class CommunityViewModel {
             showReportSheet = false
         } catch {
             errorMessage = "이미 신고한 게시물입니다."
+        }
+    }
+
+    func reportComment(reporterId: UUID) async {
+        let reason = commentReportReason.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !reason.isEmpty, let commentId = reportingCommentId else { return }
+
+        do {
+            try await service.reportComment(commentId: commentId, reporterId: reporterId, reason: reason)
+            commentReportReason = ""
+            reportingCommentId = nil
+            showCommentReportSheet = false
+        } catch {
+            errorMessage = "이미 신고한 댓글입니다."
         }
     }
 
