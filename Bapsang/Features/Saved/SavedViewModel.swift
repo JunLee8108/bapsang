@@ -6,10 +6,6 @@
 import Foundation
 import Observation
 
-extension Notification.Name {
-    static let savedItemChanged = Notification.Name("savedItemChanged")
-}
-
 @Observable
 @MainActor
 final class SavedViewModel {
@@ -164,46 +160,24 @@ final class SavedViewModel {
         authorNames[userId] ?? "Chef"
     }
 
-    // MARK: - Notification Observation
+    // MARK: - Staleness Checks
 
-    /// Observe saved item changes via async sequence.
-    /// Call from View's `.task` — automatically cancelled when the view disappears.
-    func observeSavedItemChanges() async {
-        for await notification in NotificationCenter.default.notifications(named: .savedItemChanged) {
-            guard let sourceType = notification.userInfo?["sourceType"] as? String,
-                  let sourceId = notification.userInfo?["sourceId"] as? UUID,
-                  let isSaved = notification.userInfo?["isSaved"] as? Bool
-            else { continue }
+    private var displayNameVersion = 0
+    private var savedItemVersion = 0
 
-            if isSaved {
-                if sourceType == "default" {
-                    hasFetchedDefault = false
-                } else if sourceType == "community" {
-                    hasFetchedCommunity = false
-                }
-            } else {
-                if sourceType == "default" {
-                    savedDefaultIds.remove(sourceId)
-                    savedDefaultRecipes.removeAll { $0.id == sourceId }
-                } else if sourceType == "community" {
-                    savedCommunityIds.remove(sourceId)
-                    savedCommunityPosts.removeAll { $0.id == sourceId }
-                }
-            }
-        }
+    /// Clears cached display names if they changed since last sync.
+    func clearDisplayNamesIfStale() {
+        guard displayNameVersion != DisplayNameTracker.version else { return }
+        displayNameVersion = DisplayNameTracker.version
+        authorNames = [:]
+        hasFetchedCommunity = false
     }
 
-    /// Observe display name changes via async sequence.
-    /// Call from View's `.task` — automatically cancelled when the view disappears.
-    func observeDisplayNameChanges() async {
-        for await _ in NotificationCenter.default.notifications(named: .displayNameDidChange) {
-            authorNames = [:]
-            // Re-fetch display names for currently visible community posts
-            let userIds = Set(savedCommunityPosts.map(\.userId))
-            if !userIds.isEmpty {
-                let names = try? await service.fetchDisplayNames(userIds: userIds)
-                if let names { authorNames.merge(names) { _, new in new } }
-            }
-        }
+    /// Marks saved data as stale if bookmarks changed from another tab.
+    func clearSavedCacheIfStale() {
+        guard savedItemVersion != SavedItemTracker.version else { return }
+        savedItemVersion = SavedItemTracker.version
+        hasFetchedDefault = false
+        hasFetchedCommunity = false
     }
 }

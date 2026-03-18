@@ -43,15 +43,11 @@ struct SavedView: View {
         }
         .task {
             guard let userId = authService.currentUserId else { return }
+            viewModel.clearDisplayNamesIfStale()
+            viewModel.clearSavedCacheIfStale()
             await viewModel.loadSavedIds(userId: userId)
             await viewModel.fetchSavedIfNeeded(userId: userId)
             communityViewModel.authorNames.merge(viewModel.authorNames) { _, new in new }
-        }
-        .task {
-            await viewModel.observeSavedItemChanges()
-        }
-        .task {
-            await viewModel.observeDisplayNameChanges()
         }
     }
 

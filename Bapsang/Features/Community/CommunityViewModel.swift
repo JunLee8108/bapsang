@@ -483,19 +483,15 @@ final class CommunityViewModel {
         newSteps.removeAll { $0.id == id }
     }
 
-    // MARK: - Notification Observation
+    // MARK: - Display Name Staleness
 
-    /// Observe display name changes via async sequence.
-    /// Call from View's `.task` — automatically cancelled when the view disappears.
-    func observeDisplayNameChanges() async {
-        for await _ in NotificationCenter.default.notifications(named: .displayNameDidChange) {
-            authorNames = [:]
-            // Re-fetch display names for currently visible posts
-            let userIds = Set(posts.map(\.userId))
-            if !userIds.isEmpty {
-                let names = try? await service.fetchDisplayNames(userIds: userIds)
-                if let names { authorNames.merge(names) { _, new in new } }
-            }
-        }
+    private var displayNameVersion = 0
+
+    /// Clears cached display names if they changed since last sync.
+    /// Call before fetchPosts() so the fetch naturally re-fetches fresh names.
+    func clearDisplayNamesIfStale() {
+        guard displayNameVersion != DisplayNameTracker.version else { return }
+        displayNameVersion = DisplayNameTracker.version
+        authorNames = [:]
     }
 }

@@ -78,14 +78,12 @@ struct CommunityView: View {
             }
         }
         .task {
+            viewModel.clearDisplayNamesIfStale()
             await viewModel.fetchPosts()
             if let userId = authService.currentUserId {
                 let postIds = viewModel.posts.map(\.id)
                 await viewModel.batchCheckLikedStatus(postIds: postIds, userId: userId)
             }
-        }
-        .task {
-            await viewModel.observeDisplayNameChanges()
         }
     }
 

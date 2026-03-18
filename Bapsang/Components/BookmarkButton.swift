@@ -49,15 +49,7 @@ struct BookmarkButton: View {
             } else {
                 try await service.saveItem(userId: userId, sourceType: sourceType, sourceId: sourceId)
             }
-            NotificationCenter.default.post(
-                name: .savedItemChanged,
-                object: nil,
-                userInfo: [
-                    "sourceType": sourceType.rawValue,
-                    "sourceId": sourceId,
-                    "isSaved": !wasSaved
-                ]
-            )
+            SavedItemTracker.notifyChange()
         } catch {
             isSaved = wasSaved // Revert on error
         }
