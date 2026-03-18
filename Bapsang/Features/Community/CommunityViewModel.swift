@@ -188,6 +188,7 @@ final class CommunityViewModel {
             if let index = posts.firstIndex(where: { $0.id == postId }) {
                 posts[index].likesCount += delta
             }
+            PostEngagementTracker.notifyChange()
         } catch {
             errorMessage = "좋아요 처리에 실패했습니다."
         }
@@ -248,6 +249,7 @@ final class CommunityViewModel {
             if let index = posts.firstIndex(where: { $0.id == postId }) {
                 posts[index].commentsCount += 1
             }
+            PostEngagementTracker.notifyChange()
         } catch {
             errorMessage = "댓글 작성에 실패했습니다."
         }
@@ -262,6 +264,7 @@ final class CommunityViewModel {
             if let index = posts.firstIndex(where: { $0.id == postId }) {
                 posts[index].commentsCount -= 1
             }
+            PostEngagementTracker.notifyChange()
         } catch {
             errorMessage = "댓글 삭제에 실패했습니다."
         }

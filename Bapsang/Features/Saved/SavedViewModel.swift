@@ -164,6 +164,7 @@ final class SavedViewModel {
 
     private var displayNameVersion = 0
     private var savedItemVersion = 0
+    private var engagementVersion = 0
 
     /// Clears cached display names if they changed since last sync.
     func clearDisplayNamesIfStale() {
@@ -178,6 +179,13 @@ final class SavedViewModel {
         guard savedItemVersion != SavedItemTracker.version else { return }
         savedItemVersion = SavedItemTracker.version
         hasFetchedDefault = false
+        hasFetchedCommunity = false
+    }
+
+    /// Forces community posts re-fetch if likes/comments changed from another tab.
+    func clearCommunityPostsIfStale() {
+        guard engagementVersion != PostEngagementTracker.version else { return }
+        engagementVersion = PostEngagementTracker.version
         hasFetchedCommunity = false
     }
 }
