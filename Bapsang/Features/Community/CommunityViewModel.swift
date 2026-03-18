@@ -28,6 +28,7 @@ final class CommunityViewModel {
     var commentText = ""
     var likedPostIds: Set<UUID> = []
     var likesCountDelta: [UUID: Int] = [:]
+    var commentsCountDelta: [UUID: Int] = [:]
 
     // Author display names cache
     var authorNames: [UUID: String] = [:]
@@ -139,6 +140,7 @@ final class CommunityViewModel {
                 authorNames.merge(names) { _, new in new }
             }
 
+            commentsCountDelta[postId, default: 0] += 1
             if let index = posts.firstIndex(where: { $0.id == postId }) {
                 posts[index].commentsCount += 1
             }
@@ -152,6 +154,7 @@ final class CommunityViewModel {
             try await service.deleteComment(id: commentId)
             comments.removeAll { $0.id == commentId }
 
+            commentsCountDelta[postId, default: 0] -= 1
             if let index = posts.firstIndex(where: { $0.id == postId }) {
                 posts[index].commentsCount -= 1
             }
