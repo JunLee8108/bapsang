@@ -23,18 +23,33 @@ struct CommunityCreatePostView: View {
 
     var body: some View {
         NavigationStack {
-            ScrollView {
-                VStack(spacing: 24) {
-                    imageSection
-                    titleSection
-                    descriptionSection
-                    metaSection
-                    ingredientsSection
-                    stepsSection
+            ScrollViewReader { proxy in
+                ScrollView {
+                    VStack(spacing: 24) {
+                        imageSection
+                        titleSection
+                            .id("title")
+                        descriptionSection
+                        metaSection
+                        ingredientsSection
+                            .id("ingredients")
+                        stepsSection
+                            .id("steps")
+                    }
+                    .padding(.horizontal, 20)
+                    .padding(.top, 8)
+                    .padding(.bottom, 40)
                 }
-                .padding(.horizontal, 20)
-                .padding(.top, 8)
-                .padding(.bottom, 40)
+                .onChange(of: viewModel.validationError) { _, error in
+                    guard let error else { return }
+                    withAnimation {
+                        switch error {
+                        case .title:       proxy.scrollTo("title", anchor: .top)
+                        case .ingredients: proxy.scrollTo("ingredients", anchor: .top)
+                        case .steps:       proxy.scrollTo("steps", anchor: .top)
+                        }
+                    }
+                }
             }
             .navigationTitle(isEditing ? "Edit Recipe" : "New Recipe")
             .navigationBarTitleDisplayMode(.inline)
