@@ -6,10 +6,6 @@
 import Foundation
 import Supabase
 
-extension Notification.Name {
-    static let displayNameDidChange = Notification.Name("displayNameDidChange")
-}
-
 @Observable
 @MainActor
 final class ProfileEditViewModel {
@@ -75,7 +71,7 @@ final class ProfileEditViewModel {
                 .execute()
 
             didSave = true
-            NotificationCenter.default.post(name: .displayNameDidChange, object: nil)
+            DisplayNameTracker.notifyChange()
         } catch {
             errorMessage = "Failed to save profile. Please try again."
         }
