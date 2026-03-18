@@ -26,7 +26,11 @@ struct CommunityView: View {
                     .padding(.bottom, 100)
                 }
                 .refreshable {
-                    await viewModel.fetchPosts()
+                    await viewModel.refreshPosts()
+                    if let userId = authService.currentUserId {
+                        let postIds = viewModel.posts.map(\.id)
+                        await viewModel.batchCheckLikedStatus(postIds: postIds, userId: userId)
+                    }
                 }
 
                 // FAB
@@ -76,9 +80,8 @@ struct CommunityView: View {
         .task {
             await viewModel.fetchPosts()
             if let userId = authService.currentUserId {
-                for post in viewModel.posts {
-                    await viewModel.checkIfLiked(postId: post.id, userId: userId)
-                }
+                let postIds = viewModel.posts.map(\.id)
+                await viewModel.batchCheckLikedStatus(postIds: postIds, userId: userId)
             }
         }
     }
@@ -214,6 +217,27 @@ struct CommunityView: View {
                             )
                         }
                         .buttonStyle(.plain)
+                        .onAppear {
+                            // Trigger next page when 5th-to-last item appears
+                            if post.id == viewModel.posts.dropLast(4).last?.id {
+                                Task {
+                                    await viewModel.fetchMorePosts()
+                                    if let userId = authService.currentUserId {
+                                        let newIds = viewModel.posts.map(\.id).filter { !viewModel.likedPostIds.contains($0) }
+                                        if !newIds.isEmpty {
+                                            await viewModel.batchCheckLikedStatus(postIds: newIds, userId: userId)
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    // Bottom loading indicator
+                    if viewModel.isFetchingMore {
+                        ProgressView()
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 16)
                     }
                 }
             }

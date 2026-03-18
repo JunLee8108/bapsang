@@ -12,17 +12,41 @@ final class CommunityService {
 
     // MARK: - Posts
 
-    func fetchPosts(sortBy: PostSort = .latest) async throws -> [CommunityPost] {
-        let query = supabase
+    static let pageSize = 15
+
+    func fetchPosts(
+        sortBy: PostSort = .latest,
+        cursor: PostCursor? = nil,
+        limit: Int = CommunityService.pageSize
+    ) async throws -> [CommunityPost] {
+        var query = supabase
             .from("community_posts")
             .select()
             .eq("is_hidden", value: false)
 
         switch sortBy {
         case .latest:
-            return try await query.order("created_at", ascending: false).execute().value
+            if let cursor {
+                // Posts older than the cursor
+                query = query.lt("created_at", value: cursor.createdAt)
+            }
+            return try await query
+                .order("created_at", ascending: false)
+                .limit(limit)
+                .execute()
+                .value
+
         case .popular:
-            return try await query.order("likes_count", ascending: false).execute().value
+            if let cursor {
+                // Posts with fewer likes, or same likes but older
+                query = query.or("likes_count.lt.\(cursor.likesCount),and(likes_count.eq.\(cursor.likesCount),created_at.lt.\(cursor.createdAt))")
+            }
+            return try await query
+                .order("likes_count", ascending: false)
+                .order("created_at", ascending: false)
+                .limit(limit)
+                .execute()
+                .value
         }
     }
 
@@ -142,6 +166,19 @@ final class CommunityService {
             .execute()
             .value
         return !result.isEmpty
+    }
+
+    /// Batch check which posts the user has liked
+    func fetchLikedPostIds(postIds: [UUID], userId: UUID) async throws -> Set<UUID> {
+        guard !postIds.isEmpty else { return [] }
+        let rows: [PostIdOnly] = try await supabase
+            .from("community_likes")
+            .select("post_id")
+            .eq("user_id", value: userId)
+            .in("post_id", values: postIds.map(\.uuidString))
+            .execute()
+            .value
+        return Set(rows.map(\.postId))
     }
 
     func toggleLike(postId: UUID, userId: UUID) async throws -> Bool {
@@ -355,6 +392,30 @@ private struct CommentReportPayload: Encodable {
 
 private struct CommunityLike: Codable {
     let id: UUID
+}
+
+private struct PostIdOnly: Codable {
+    let postId: UUID
+
+    enum CodingKeys: String, CodingKey {
+        case postId = "post_id"
+    }
+}
+
+struct PostCursor {
+    let createdAt: String   // ISO8601 string for Supabase filter
+    let likesCount: Int
+
+    init(from post: CommunityPost) {
+        if let date = post.createdAt {
+            let formatter = ISO8601DateFormatter()
+            formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+            self.createdAt = formatter.string(from: date)
+        } else {
+            self.createdAt = ""
+        }
+        self.likesCount = post.likesCount
+    }
 }
 
 struct UserIdName: Codable {
