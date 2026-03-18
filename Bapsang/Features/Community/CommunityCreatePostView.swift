@@ -49,8 +49,6 @@ struct CommunityCreatePostView: View {
                 ToolbarItem(placement: .confirmationAction) {
                     Button(isEditing ? "Save" : "Post") {
                         guard let userId = authService.currentUserId else { return }
-                        // Crop image to visible region before uploading,
-                        // then reset offset so the view doesn't visually jump.
                         applyCroppedImage()
                         resetImageOffset()
                         Task {
@@ -328,6 +326,21 @@ struct CommunityCreatePostView: View {
                     RoundedRectangle(cornerRadius: 12)
                         .fill(.ultraThinMaterial)
                 }
+                .overlay {
+                    if viewModel.validationError == .title {
+                        RoundedRectangle(cornerRadius: 12)
+                            .stroke(.red, lineWidth: 1.5)
+                    }
+                }
+                .onChange(of: viewModel.newTitle) {
+                    if viewModel.validationError == .title {
+                        viewModel.validationError = nil
+                    }
+                }
+
+            if viewModel.validationError == .title {
+                validationLabel(viewModel.validationError!.message)
+            }
         }
     }
 
@@ -469,6 +482,11 @@ struct CommunityCreatePostView: View {
 
                     TextField("e.g. 2 cups rice", text: $field.value)
                         .font(.system(size: 14))
+                        .onChange(of: field.value) {
+                            if viewModel.validationError == .ingredients {
+                                viewModel.validationError = nil
+                            }
+                        }
 
                     if viewModel.newIngredients.count > 1 {
                         Button {
@@ -485,6 +503,16 @@ struct CommunityCreatePostView: View {
                     RoundedRectangle(cornerRadius: 10)
                         .fill(.ultraThinMaterial)
                 }
+                .overlay {
+                    if viewModel.validationError == .ingredients {
+                        RoundedRectangle(cornerRadius: 10)
+                            .stroke(.red, lineWidth: 1.5)
+                    }
+                }
+            }
+
+            if viewModel.validationError == .ingredients {
+                validationLabel(viewModel.validationError!.message)
             }
         }
     }
@@ -521,6 +549,9 @@ struct CommunityCreatePostView: View {
                             if let i = viewModel.newSteps.firstIndex(where: { $0.id == field.id }) {
                                 viewModel.newSteps[i].value = newValue
                             }
+                            if viewModel.validationError == .steps {
+                                viewModel.validationError = nil
+                            }
                         }
                     ), axis: .vertical)
                         .font(.system(size: 14))
@@ -541,6 +572,16 @@ struct CommunityCreatePostView: View {
                     RoundedRectangle(cornerRadius: 10)
                         .fill(.ultraThinMaterial)
                 }
+                .overlay {
+                    if viewModel.validationError == .steps {
+                        RoundedRectangle(cornerRadius: 10)
+                            .stroke(.red, lineWidth: 1.5)
+                    }
+                }
+            }
+
+            if viewModel.validationError == .steps {
+                validationLabel(viewModel.validationError!.message)
             }
         }
     }
@@ -551,6 +592,12 @@ struct CommunityCreatePostView: View {
         Text(text)
             .font(.system(size: 13, weight: .semibold, design: .rounded))
             .foregroundStyle(.secondary)
+    }
+
+    private func validationLabel(_ text: String) -> some View {
+        Text(text)
+            .font(.system(size: 12, weight: .medium))
+            .foregroundStyle(.red)
     }
 
     private func difficultyColor(_ level: String) -> Color {
