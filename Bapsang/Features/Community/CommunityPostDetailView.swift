@@ -13,6 +13,14 @@ struct CommunityPostDetailView: View {
     @State private var showDeleteConfirm = false
     @State private var showEditSheet = false
     @FocusState private var isCommentFocused: Bool
+    @State private var localLikesCount: Int
+    @State private var localIsLiked: Bool = false
+
+    init(post: CommunityPost, viewModel: CommunityViewModel) {
+        self.post = post
+        self.viewModel = viewModel
+        self._localLikesCount = State(initialValue: post.likesCount)
+    }
 
     private var isOwnPost: Bool {
         authService.currentUserId == post.userId
@@ -140,6 +148,7 @@ struct CommunityPostDetailView: View {
             await viewModel.fetchComments(postId: post.id)
             if let userId = authService.currentUserId {
                 await viewModel.checkIfLiked(postId: post.id, userId: userId)
+                localIsLiked = viewModel.likedPostIds.contains(post.id)
             }
         }
     }
@@ -307,16 +316,17 @@ struct CommunityPostDetailView: View {
         HStack(spacing: 20) {
             Button {
                 guard let userId = authService.currentUserId else { return }
+                localIsLiked.toggle()
+                localLikesCount += localIsLiked ? 1 : -1
                 Task { await viewModel.toggleLike(postId: post.id, userId: userId) }
             } label: {
-                let isLiked = viewModel.likedPostIds.contains(post.id)
                 HStack(spacing: 8) {
-                    Image(systemName: isLiked ? "heart.fill" : "heart")
+                    Image(systemName: localIsLiked ? "heart.fill" : "heart")
                         .font(.system(size: 20))
-                        .foregroundStyle(isLiked ? .red : .secondary)
-                        .animation(.spring(response: 0.3), value: isLiked)
+                        .foregroundStyle(localIsLiked ? .red : .secondary)
+                        .animation(.spring(response: 0.3), value: localIsLiked)
 
-                    Text("\(currentLikesCount)")
+                    Text("\(localLikesCount)")
                         .font(.system(size: 15, weight: .semibold))
                         .foregroundStyle(.primary)
                 }
@@ -334,16 +344,11 @@ struct CommunityPostDetailView: View {
         }
     }
 
-    private var currentLikesCount: Int {
-        viewModel.posts.first(where: { $0.id == post.id })?.likesCount ?? post.likesCount
-    }
-
     // MARK: - Comments
 
     private var commentsSection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            let count = viewModel.posts.first(where: { $0.id == post.id })?.commentsCount ?? post.commentsCount
-            sectionHeader(icon: "bubble.right", title: "Comments (\(count))")
+            sectionHeader(icon: "bubble.right", title: "Comments (\(viewModel.comments.count))")
 
             if viewModel.isLoadingComments {
                 ProgressView()
