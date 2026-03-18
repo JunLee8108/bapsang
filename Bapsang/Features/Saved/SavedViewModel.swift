@@ -17,7 +17,8 @@ final class SavedViewModel {
     // MARK: - State
 
     var selectedTab: SavedSourceType = .default
-    var isLoading = true
+    var isLoadingDefault = true
+    var isLoadingCommunity = true
     var errorMessage: String?
 
     // Default recipes
@@ -68,22 +69,26 @@ final class SavedViewModel {
     }
 
     func fetchSaved(userId: UUID) async {
-        isLoading = true
-        defer { isLoading = false }
-
-        do {
-            switch selectedTab {
-            case .default:
+        switch selectedTab {
+        case .default:
+            isLoadingDefault = true
+            defer { isLoadingDefault = false }
+            do {
                 let ids = try await service.fetchSavedSourceIds(userId: userId, sourceType: .default)
                 savedDefaultIds = ids
                 savedDefaultRecipes = ids.compactMap { DefaultRecipeData.recipe(for: $0) }
                 hasFetchedDefault = true
-            case .community:
+            } catch {
+                errorMessage = "저장된 레시피를 불러올 수 없습니다."
+            }
+        case .community:
+            isLoadingCommunity = true
+            defer { isLoadingCommunity = false }
+            do {
                 let ids = try await service.fetchSavedSourceIds(userId: userId, sourceType: .community)
                 savedCommunityIds = ids
                 let posts = try await service.fetchCommunityPosts(ids: ids)
                 savedCommunityPosts = posts
-                // Fetch author names
                 let userIds = Set(posts.map(\.userId))
                 let newIds = userIds.subtracting(authorNames.keys)
                 if !newIds.isEmpty {
@@ -91,9 +96,9 @@ final class SavedViewModel {
                     authorNames.merge(names) { _, new in new }
                 }
                 hasFetchedCommunity = true
+            } catch {
+                errorMessage = "저장된 레시피를 불러올 수 없습니다."
             }
-        } catch {
-            errorMessage = "저장된 레시피를 불러올 수 없습니다."
         }
     }
 
