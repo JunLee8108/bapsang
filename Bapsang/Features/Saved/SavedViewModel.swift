@@ -6,6 +6,10 @@
 import Foundation
 import Observation
 
+extension Notification.Name {
+    static let savedItemChanged = Notification.Name("savedItemChanged")
+}
+
 @Observable
 @MainActor
 final class SavedViewModel {
@@ -27,9 +31,41 @@ final class SavedViewModel {
     var savedDefaultIds: Set<UUID> = []
     var savedCommunityIds: Set<UUID> = []
 
+    // Cache flags — only re-fetch when stale
+    private var hasFetchedDefault = false
+    private var hasFetchedCommunity = false
+
     private let service = SavedService()
 
+    init() {
+        NotificationCenter.default.addObserver(
+            forName: .savedItemChanged,
+            object: nil,
+            queue: .main
+        ) { [weak self] notification in
+            guard let sourceType = notification.userInfo?["sourceType"] as? String else { return }
+            Task { @MainActor [weak self] in
+                if sourceType == "default" {
+                    self?.hasFetchedDefault = false
+                } else if sourceType == "community" {
+                    self?.hasFetchedCommunity = false
+                }
+            }
+        }
+    }
+
     // MARK: - Fetch
+
+    func fetchSavedIfNeeded(userId: UUID) async {
+        switch selectedTab {
+        case .default where hasFetchedDefault:
+            return
+        case .community where hasFetchedCommunity:
+            return
+        default:
+            await fetchSaved(userId: userId)
+        }
+    }
 
     func fetchSaved(userId: UUID) async {
         isLoading = true
@@ -41,6 +77,7 @@ final class SavedViewModel {
                 let ids = try await service.fetchSavedSourceIds(userId: userId, sourceType: .default)
                 savedDefaultIds = ids
                 savedDefaultRecipes = ids.compactMap { DefaultRecipeData.recipe(for: $0) }
+                hasFetchedDefault = true
             case .community:
                 let ids = try await service.fetchSavedSourceIds(userId: userId, sourceType: .community)
                 savedCommunityIds = ids
@@ -53,6 +90,7 @@ final class SavedViewModel {
                     let names = try await service.fetchDisplayNames(userIds: newIds)
                     authorNames.merge(names) { _, new in new }
                 }
+                hasFetchedCommunity = true
             }
         } catch {
             errorMessage = "저장된 레시피를 불러올 수 없습니다."
