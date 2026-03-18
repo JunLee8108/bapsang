@@ -15,6 +15,7 @@ struct CommunityPostDetailView: View {
     @FocusState private var isCommentFocused: Bool
     @State private var localLikesCount: Int
     @State private var localIsLiked: Bool = false
+    @State private var showFullImage = false
 
     init(post: CommunityPost, viewModel: CommunityViewModel) {
         self.post = post
@@ -35,16 +36,21 @@ struct CommunityPostDetailView: View {
                         CachedAsyncImage(url: url) { phase in
                             switch phase {
                             case .success(let image):
-                                Color.clear
-                                    .frame(height: 200)
-                                    .overlay {
-                                        image
-                                            .resizable()
-                                            .scaledToFill()
-                                    }
-                                    .clipped()
-                                    .contentShape(Rectangle())
-                                    .clipShape(RoundedRectangle(cornerRadius: 16))
+                                Button {
+                                    showFullImage = true
+                                } label: {
+                                    Color.clear
+                                        .frame(height: 200)
+                                        .overlay {
+                                            image
+                                                .resizable()
+                                                .scaledToFill()
+                                        }
+                                        .clipped()
+                                        .contentShape(Rectangle())
+                                        .clipShape(RoundedRectangle(cornerRadius: 16))
+                                }
+                                .buttonStyle(.plain)
                             case .failure:
                                 RoundedRectangle(cornerRadius: 16)
                                     .fill(.gray.opacity(0.15))
@@ -60,6 +66,9 @@ struct CommunityPostDetailView: View {
                                     .frame(height: 260)
                                     .overlay { ProgressView() }
                             }
+                        }
+                        .fullScreenCover(isPresented: $showFullImage) {
+                            FullScreenRemoteImageView(url: url, title: post.title)
                         }
                     }
 
@@ -501,6 +510,105 @@ struct CommunityPostDetailView: View {
 
             Text(title)
                 .font(.system(size: 17, weight: .semibold, design: .rounded))
+        }
+    }
+}
+
+// MARK: - Full Screen Remote Image
+
+private struct FullScreenRemoteImageView: View {
+    let url: URL
+    let title: String
+    @Environment(\.dismiss) private var dismiss
+    @State private var scale: CGFloat = 1.0
+    @State private var lastScale: CGFloat = 1.0
+    @State private var offset: CGSize = .zero
+    @State private var lastOffset: CGSize = .zero
+
+    var body: some View {
+        ZStack {
+            Color.black.ignoresSafeArea()
+
+            CachedAsyncImage(url: url) { phase in
+                switch phase {
+                case .success(let image):
+                    image
+                        .resizable()
+                        .scaledToFit()
+                        .scaleEffect(scale)
+                        .offset(offset)
+                        .gesture(
+                            MagnifyGesture()
+                                .onChanged { value in
+                                    scale = lastScale * value.magnification
+                                }
+                                .onEnded { _ in
+                                    lastScale = max(scale, 1.0)
+                                    scale = max(scale, 1.0)
+                                    if scale == 1.0 {
+                                        withAnimation(.spring(response: 0.3)) {
+                                            offset = .zero
+                                            lastOffset = .zero
+                                        }
+                                    }
+                                }
+                                .simultaneously(
+                                    with: DragGesture()
+                                        .onChanged { value in
+                                            if scale > 1.0 {
+                                                offset = CGSize(
+                                                    width: lastOffset.width + value.translation.width,
+                                                    height: lastOffset.height + value.translation.height
+                                                )
+                                            }
+                                        }
+                                        .onEnded { _ in
+                                            lastOffset = offset
+                                        }
+                                )
+                        )
+                        .onTapGesture(count: 2) {
+                            withAnimation(.spring(response: 0.3)) {
+                                if scale > 1.0 {
+                                    scale = 1.0
+                                    lastScale = 1.0
+                                    offset = .zero
+                                    lastOffset = .zero
+                                } else {
+                                    scale = 2.5
+                                    lastScale = 2.5
+                                }
+                            }
+                        }
+                case .failure:
+                    Image(systemName: "photo")
+                        .font(.system(size: 40))
+                        .foregroundStyle(.white.opacity(0.5))
+                default:
+                    ProgressView()
+                        .tint(.white)
+                }
+            }
+
+            VStack {
+                HStack {
+                    Spacer()
+                    Button {
+                        dismiss()
+                    } label: {
+                        Image(systemName: "xmark.circle.fill")
+                            .font(.system(size: 30))
+                            .foregroundStyle(.white.opacity(0.8))
+                            .padding(16)
+                    }
+                }
+                Spacer()
+
+                Text(title)
+                    .font(.system(size: 16, weight: .medium, design: .rounded))
+                    .foregroundStyle(.white.opacity(0.7))
+                    .padding(.bottom, 40)
+            }
         }
     }
 }
