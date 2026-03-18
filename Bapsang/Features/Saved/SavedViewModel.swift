@@ -110,6 +110,18 @@ final class SavedViewModel {
         } catch {}
     }
 
+    // MARK: - Sync Likes
+
+    func applyLikeDeltas(from communityVM: CommunityViewModel) {
+        for i in savedCommunityPosts.indices {
+            let postId = savedCommunityPosts[i].id
+            if let delta = communityVM.likesCountDelta[postId] {
+                savedCommunityPosts[i].likesCount += delta
+            }
+        }
+        communityVM.likesCountDelta.removeAll()
+    }
+
     // MARK: - Display Name
 
     func displayName(for userId: UUID) -> String {

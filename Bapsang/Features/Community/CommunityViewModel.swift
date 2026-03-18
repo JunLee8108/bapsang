@@ -27,6 +27,7 @@ final class CommunityViewModel {
     var isLoadingComments = false
     var commentText = ""
     var likedPostIds: Set<UUID> = []
+    var likesCountDelta: [UUID: Int] = [:]
 
     // Author display names cache
     var authorNames: [UUID: String] = [:]
@@ -85,8 +86,10 @@ final class CommunityViewModel {
             }
 
             // Update local count
+            let delta = isNowLiked ? 1 : -1
+            likesCountDelta[postId, default: 0] += delta
             if let index = posts.firstIndex(where: { $0.id == postId }) {
-                posts[index].likesCount += isNowLiked ? 1 : -1
+                posts[index].likesCount += delta
             }
         } catch {
             errorMessage = "좋아요 처리에 실패했습니다."
