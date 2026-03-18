@@ -181,6 +181,16 @@ final class SavedViewModel {
         communityVM.likesCountDelta.removeAll()
     }
 
+    func applyCommentDeltas(from communityVM: CommunityViewModel) {
+        for i in savedCommunityPosts.indices {
+            let postId = savedCommunityPosts[i].id
+            if let delta = communityVM.commentsCountDelta[postId] {
+                savedCommunityPosts[i].commentsCount += delta
+            }
+        }
+        communityVM.commentsCountDelta.removeAll()
+    }
+
     // MARK: - Display Name
 
     func displayName(for userId: UUID) -> String {
