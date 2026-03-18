@@ -12,7 +12,7 @@ final class CommunityService {
 
     // MARK: - Posts
 
-    static let pageSize = 15
+    nonisolated static let pageSize = 15
 
     func fetchPosts(
         sortBy: PostSort = .latest,

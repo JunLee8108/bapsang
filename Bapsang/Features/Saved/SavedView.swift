@@ -358,7 +358,7 @@ private struct SavedCommunityPostCard: View {
                     if let time = post.cookingTime {
                         metaItem(icon: "clock", text: "\(time) min")
                     }
-                    if let difficulty = post.difficulty {
+                    if post.difficulty != nil {
                         metaItem(icon: "chart.bar", text: post.difficultyLabel)
                     }
                     metaItem(icon: "heart.fill", text: "\(post.likesCount)", color: .red.opacity(0.6))
