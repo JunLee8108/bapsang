@@ -55,6 +55,23 @@ final class CommunityViewModel {
 
     // Author display names cache
     var authorNames: [UUID: String] = [:]
+    private var displayNameObserver: Any?
+
+    init() {
+        displayNameObserver = NotificationCenter.default.addObserver(
+            forName: .displayNameDidChange,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            self?.authorNames = [:]
+        }
+    }
+
+    deinit {
+        if let observer = displayNameObserver {
+            NotificationCenter.default.removeObserver(observer)
+        }
+    }
 
     // Create post state
     var newTitle = ""
@@ -159,6 +176,7 @@ final class CommunityViewModel {
         cachedSortBy = nil
         likesCountDelta = [:]
         commentsCountDelta = [:]
+        authorNames = [:]
         await fetchPosts()
     }
 
